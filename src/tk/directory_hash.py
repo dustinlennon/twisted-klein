@@ -3,18 +3,19 @@ import os
 from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
 
-from callbacks import (
+from tk.callbacks import (
   cb_exit,
   cb_log_result,
   eb_crash
 )
 
-from pipe_factory import PipeFactory
+from tk.pipe_factory import PipeFactory
 
 class DirectoryHash(object):
   cmds = [
     """ /usr/bin/find {basedir} -type f -print0 """,
     """ /usr/bin/xargs -0 -I% {hasher} %""",
+    """ awk '{{ print $1 }}' """,
     """ /usr/bin/sort """,
     """ {hasher} """
   ]

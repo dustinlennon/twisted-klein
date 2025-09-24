@@ -4,17 +4,17 @@ import jinja2
 from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
 
-from callbacks import (
+from tk.callbacks import (
   cb_exit,
   cb_log_result,
   eb_crash
 )
 
-from pipe_factory import PipeFactory
+from tk.pipe_factory import PipeFactory
 
 class SelfExtractor(object):
   cmds = [
-    """ /usr/bin/tar -C {basedir} -cz . """,
+    """ /usr/bin/tar -C {basedir} --sort=name --owner=0 --group=0 --mtime='1970-01-01' -cz . """,
     """ /usr/bin/base64 - """
   ]
 
@@ -47,19 +47,28 @@ class SelfExtractor(object):
 # main
 #
 if __name__ == '__main__':
-  from context_logger import initialize_logging, ContextLogger
+  import argparse
+  import sys
+  
+  parser = argparse.ArgumentParser()
+  parser.add_argument("script_id", type=int)
+  args = parser.parse_args()
 
-  initialize_logging(LogLevel.debug, {})
-  logger = ContextLogger()
+  if args.script_id == 0:
+    path = "./tests/data/foo"
+  elif args.script_id == 1:
+    path = "/tmp/pytest-of-dnlennon/pytest-93/test_elsewhere0"
+  else:
+    print(args.script_id)
+    sys.exit(1)
 
-  self_extractor = SelfExtractor("./templates", "install.sh.j2")
-
-  d3 = self_extractor.generate('./vmfs')
+  self_extractor = SelfExtractor("./tests/templates", "encoded_tarball.j2")
+  d1 = self_extractor.generate(path)
 
   def cb_print(result):
-    print( result.decode() )
+    sys.stdout.write( result.decode() )
 
-  d3.addCallbacks(cb_print, eb_crash)
-  d3.addCallback(cb_exit)
+  d1.addCallbacks(cb_print, eb_crash)
+  d1.addCallback(cb_exit)
 
   reactor.run()

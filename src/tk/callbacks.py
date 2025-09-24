@@ -24,6 +24,7 @@ def cb_log_result(result, format, transform = str, level = LogLevel.info, **kw):
   getattr(logger, level.name)(
     format = format, result = transform(result), **kw
   )
+  return result
 
 def cb_debug(result, *args, **kw):
   logger.debug("{result}", result = result)

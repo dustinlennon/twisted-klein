@@ -10,15 +10,17 @@ from twisted.internet import (
   reactor
 )
 
+from twisted.internet.interfaces import IReactorProcess
+
 from twisted.logger import LogLevel
 
-from callbacks import (
+from tk.callbacks import (
   cb_exit,
   cb_log_result,
   eb_crash
 )
 
-from context_logger import ContextLogger
+from tk.context_logger import ContextLogger
 
 #
 # PipeProtocol class
@@ -69,20 +71,17 @@ class Pipe(object):
 
   def __init__(self, factory):
     self.factory  = factory
+    self.finished = defer.Deferred()
 
   @property
   def procs(self):
     return self.factory.cache[self].procs
 
-  @property
-  def finished(self):
-    return self.factory.cache[self].finished
-
   def run(self, data : bytes = None) -> defer.Deferred:
     for cmd in self.factory.cmds:
       args = shlex.split(cmd)
       pipe_protocol = PipeProtocol(self)
-      proc = reactor.spawnProcess(pipe_protocol, args[0], args)
+      proc = IReactorProcess(reactor).spawnProcess(pipe_protocol, args[0], args)
       self.procs.append(proc)
 
     n = len(self.factory.cmds)
@@ -109,19 +108,22 @@ class PipeFactory(object):
     self.cmds     = cmds
 
   def run(self, data = None) -> defer.Deferred:
-    pipe = Pipe(self)
+    pipe        = Pipe(self)
+
+    initialized = defer.maybeDeferred(lambda d: d, data)
+    result      = defer.Deferred()
 
     self.cache[pipe] = SimpleNamespace(
-      procs = [],
-      finished = defer.Deferred()
+      procs = []
     )
 
-    finished = pipe.run(data)
-    finished.addCallbacks(self.finalize, eb_crash, (pipe,))
+    initialized.addCallbacks(pipe.run, eb_crash)
+    initialized.addCallbacks(self.finalize, eb_crash, (pipe, result))
 
-    return finished
+    return result
   
-  def finalize(self, result, pipe):
+  def finalize(self, result, pipe: Pipe, d : defer.Deferred):
+    d.callback(result)
     del self.cache[pipe]
     return result
 
@@ -130,7 +132,7 @@ class PipeFactory(object):
 #
 if __name__ == '__main__':
 
-  from iso.context_logger import initialize_logging
+  from context_logger import initialize_logging
   observer = initialize_logging(LogLevel.debug, {})
 
   logger = ContextLogger()
@@ -139,24 +141,23 @@ if __name__ == '__main__':
   # Pipe.logger.observer = observer
 
   cmds = [
-    """ /usr/bin/find ./vmfs -type f -not -path "*/__pycache__/*" -print """,
+    """ /usr/bin/find ./tests/data/foo -type f -not -path "*/__pycache__/*" -print """,
     """ /usr/bin/xargs -I% /usr/bin/md5sum %""",
     """ /usr/bin/sort """,
     """ /usr/bin/md5sum """
   ]
 
   data = "\n".join([
-    "./vmfs/etc/systemd/resolved.conf.d/10-mdns.conf",
-    "./vmfs/etc/issue",
-    "./vmfs/run/scripts/netplan-override.sh"
+    "./tests/data/foo/message_one",
+    "./tests/data/foo/message_two",
   ]).encode('utf8')
 
-  d1 = PipeFactory(cmds[1:]).run(data)
-  d1.addCallback(cb_log_result, format = "with data: {result}")
+  d1 = PipeFactory(cmds[1:]).run( data )
+  d1.addCallback(cb_log_result, format = "with data    : {result}")
   d1.addErrback(eb_crash)
 
   d2 = PipeFactory(cmds).run()
-  d2.addCallback(cb_log_result, format = "without data: {result}")
+  d2.addCallback(cb_log_result, format = "without data : {result}")
   d2.addErrback(eb_crash)
 
   dl = defer.DeferredList([d1, d2])

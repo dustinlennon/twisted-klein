@@ -4,7 +4,8 @@ import inspect
 from typing import Callable, Optional
 
 from twisted.logger import LogLevel
-from iso.context_logger import ContextLogger
+
+from tk.context_logger import ContextLogger
 
 def getargs(f : Callable) -> str:
   sig     = inspect.signature(f)
@@ -61,7 +62,7 @@ class Tracer(object):
 #
 if __name__ == '__main__':
 
-  from iso.context_logger import initialize_logging
+  from tk.context_logger import initialize_logging
 
   initialize_logging(LogLevel.debug, {})
 

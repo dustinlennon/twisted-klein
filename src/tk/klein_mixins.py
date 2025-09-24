@@ -5,9 +5,9 @@ from pathlib import Path
 from twisted.web import server
 from klein import Klein
 
-from tracer import Tracer
+from tk.tracer import Tracer
 
-from interfaces import (
+from tk.interfaces import (
   IDirectoryHashService,
   ISelfExtractorService
 )
@@ -35,31 +35,6 @@ class KWelcome(KBase):
     return ""
 
 #
-# FsidMapper
-#   - shared functionality for DirectoryHash and SelfExtractor
-#
-class FsidMapper(object):
-
-  fsid_map = {
-    'iso' : Path(os.environ.get('BASEDIR', '.'), 'isofs')
-  }
-
-  def map(self, request, fsid):
-    raise NotImplementedError('TODO - refactor mappings to be configurable by client code')
-  
-    try:
-      dirpath = self.fsid_map[fsid]
-  
-    except KeyError as e:
-      raise NotFound(e)
-    
-    else:
-      request.setHeader("Content-Type", "text/plain")
-
-    return dirpath
-
-
-#
 # ServiceBase
 #   - common __init__ signature for derived classes taking a 'service' arg
 #   - assign 'service' at derived-class level to preserve annotation typing
@@ -71,7 +46,7 @@ class KServiceBase(KBase):
 #
 # DirectoryHash
 #
-class KDirectoryHash(KServiceBase, FsidMapper):
+class KDirectoryHash(KServiceBase):
   app = KBase.app
 
   def __init__(self, service : IDirectoryHashService):
@@ -80,19 +55,17 @@ class KDirectoryHash(KServiceBase, FsidMapper):
 
   @app.route("/md5/<fsid>")
   def md5(self, request: server.Request, fsid):
-    dirpath = self.map(request, fsid)
-    return self.service.getDirectoryHashMD5(dirpath)
+    return self.service.getDirectoryHashMD5(fsid)
 
   @app.route("/sha256/<fsid>")
   def sha256(self, request: server.Request, fsid):
-    dirpath = self.map(request, fsid)
-    return self.service.getDirectoryHashSHA256(dirpath)
+    return self.service.getDirectoryHashSHA256(fsid)
 
 
 #
 # KSelfExtractor
 #
-class KSelfExtractor(KServiceBase, FsidMapper):
+class KSelfExtractor(KServiceBase):
   app = KBase.app
 
   def __init__(self, service : ISelfExtractorService):
@@ -101,6 +74,5 @@ class KSelfExtractor(KServiceBase, FsidMapper):
 
   @app.route("/postinstall/<fsid>")
   def postinstall(self, request: server.Request, fsid):
-    dirpath = self.map(request, fsid)
-    return self.service.getSelfExtractor(dirpath)
+    return self.service.getSelfExtractor(fsid)
 

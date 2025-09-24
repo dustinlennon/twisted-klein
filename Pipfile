@@ -12,6 +12,8 @@ idna = "*"
 jinja2 = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-twisted = "*"
 
 [requires]
 python_version = "3.12"

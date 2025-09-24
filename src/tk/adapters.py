@@ -3,10 +3,10 @@ from zope.interface import implementer
 from twisted.python import components
 from twisted.web import resource
 
-from interfaces import *
-from klein_delegator import KleinDelegator
-import klein_mixins as mixins
-from netcat_request import NetcatRequestFactory
+from tk.interfaces import *
+from tk.klein_delegator import KleinDelegator
+import tk.klein_mixins as mixins
+from tk.netcat_request import NetcatRequestFactory
 
 __all__ = []
 
@@ -19,11 +19,11 @@ class DirectoryHashFactoryFromUtilityService(NetcatRequestFactory):
   def __init__(self, service):
     self.service = service
 
-  def cmd_md5(self, dirname) -> defer.Deferred:
-    return self.service.getDirectoryHashMD5(dirname)
+  def cmd_md5(self, fsid) -> defer.Deferred:
+    return self.service.getDirectoryHashMD5(fsid)
 
-  def cmd_sha256(self, dirname) -> defer.Deferred:
-    return self.service.getDirectoryHashSHA256(dirname)
+  def cmd_sha256(self, fsid) -> defer.Deferred:
+    return self.service.getDirectoryHashSHA256(fsid)
 
 #
 # Adapter from ISelfExtractorService 
@@ -34,8 +34,8 @@ class SelfExtractorFromUtilityService(NetcatRequestFactory):
   def __init__(self, service):
     self.service = service
 
-  def cmd_pack(self, dirpath) -> defer.Deferred:
-    return self.service.getSelfExtractor(dirpath)
+  def cmd_pack(self, fsid) -> defer.Deferred:
+    return self.service.getSelfExtractor(fsid)
 
 # Adapter from IUtilityService 
 #           to resource.IResource

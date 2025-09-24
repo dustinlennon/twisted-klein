@@ -5,34 +5,34 @@ from twisted.internet import defer
 # DirectoryHash
 #
 class IDirectoryHashNetcatRequestFactory(Interface):
-  def cmd_md5(self, dirname) -> defer.Deferred:
+  def cmd_md5(self, fsid) -> defer.Deferred:
       """
-      syntax: md5 dirname
+      syntax: md5 fsid
       """
 
-  def cmd_sha256(self, dirname) -> defer.Deferred:
+  def cmd_sha256(self, fsid) -> defer.Deferred:
       """
-      syntax: sha256 dirname
+      syntax: sha256 fsid
       """
 
 class IDirectoryHashService(Interface):
-  def getDirectoryHashMD5(self, dirpath) -> defer.Deferred:
+  def getDirectoryHashMD5(self, fsid) -> defer.Deferred:
     pass
 
-  def getDirectoryHashSHA256(self, dirpath) -> defer.Deferred:
+  def getDirectoryHashSHA256(self, fsid) -> defer.Deferred:
     pass
 
 #
 # SelfExtractor
 #
 class ISelfExtractorNetcatRequestFactory(Interface):
-  def cmd_pack(self, dirname) -> defer.Deferred:
+  def cmd_pack(self, fsid) -> defer.Deferred:
     """
-    syntax: pack dirname
+    syntax: pack fsid
     """
 
 class ISelfExtractorService(Interface):
-  def getSelfExtractor(self, dirpath) -> defer.Deferred:
+  def getSelfExtractor(self, fsid) -> defer.Deferred:
     pass    
 
 
