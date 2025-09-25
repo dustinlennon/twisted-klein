@@ -2,18 +2,18 @@ import os
 
 from pathlib import Path
 
+from twisted.python import failure
 from twisted.web import server
+
 from klein import Klein
 
 from tk.tracer import Tracer
 
 from tk.interfaces import (
   IDirectoryHashService,
-  ISelfExtractorService
+  ISelfExtractorService,
+  IUserIdService
 )
-
-class NotFound(Exception):
-  pass
 
 class KBase(Tracer, verbose = True):
   app     = Klein()
@@ -25,10 +25,17 @@ class KBase(Tracer, verbose = True):
 class KWelcome(KBase):
   app = KBase.app
 
-  @app.handle_errors(NotFound)
-  def notfound(self, request, failure):
+  @app.handle_errors(FileNotFoundError)
+  def not_found(self, request, failure):
     request.setResponseCode(404)
-    return "page not found"
+    T = type(failure.value)
+    return f"not found / {T.__name__}\n"
+
+  @app.handle_errors(RuntimeError)
+  def internal_server_error(self, request, failure):
+    request.setResponseCode(500)
+    T = type(failure.value)
+    return f"internal server error / {T.__name__}\n"
 
   @app.route("/", branch = False)
   def home(self, request: server.Request):
@@ -42,6 +49,9 @@ class KWelcome(KBase):
 class KServiceBase(KBase):
   def __init__(self, service):
     super().__init__()
+ 
+  # def cb_page(self, result : bytes, request : server.Request):
+  #   return result.decode()
 
 #
 # DirectoryHash
@@ -55,10 +65,12 @@ class KDirectoryHash(KServiceBase):
 
   @app.route("/md5/<fsid>")
   def md5(self, request: server.Request, fsid):
+    request.setHeader('Content-Type', 'text/plain')
     return self.service.getDirectoryHashMD5(fsid)
 
   @app.route("/sha256/<fsid>")
   def sha256(self, request: server.Request, fsid):
+    request.setHeader('Content-Type', 'text/plain')
     return self.service.getDirectoryHashSHA256(fsid)
 
 
@@ -74,5 +86,21 @@ class KSelfExtractor(KServiceBase):
 
   @app.route("/postinstall/<fsid>")
   def postinstall(self, request: server.Request, fsid):
+    request.setHeader('Content-Type', 'text/plain')
     return self.service.getSelfExtractor(fsid)
 
+
+#
+# KUserId
+#
+class KUserId(KServiceBase):
+  app = KBase.app
+
+  def __init__(self, service : IUserIdService):
+    super().__init__(service)
+    self.service = service
+
+  @app.route("/userid")
+  def userid(self, request: server.Request):
+    request.setHeader('Content-Type', 'text/plain')
+    return self.service.getUserId()

@@ -9,13 +9,6 @@ logger = Logger()
 #
 # callback, errback functions
 #
-def eb_crash(f : Failure):
-  tb = f.getTracebackObject()
-  if tb:
-    traceback.print_tb(tb)
-  else:
-    print(f">>> unknown failure mode: {f}")
-  f.raiseException()
 
 def cb_exit(success_value_list):
   interfaces.IReactorTime(reactor).callLater(0, reactor.stop)

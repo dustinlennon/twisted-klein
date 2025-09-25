@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 from twisted.internet import (
   defer,
+  error,
   interfaces,
   protocol,
   reactor
@@ -13,14 +14,15 @@ from twisted.internet import (
 from twisted.internet.interfaces import IReactorProcess
 
 from twisted.logger import LogLevel
+from twisted.python import failure
 
 from tk.callbacks import (
   cb_exit,
-  cb_log_result,
-  eb_crash
+  cb_log_result
 )
 
 from tk.context_logger import ContextLogger
+from tk.errors import ProcessError
 
 #
 # PipeProtocol class
@@ -31,10 +33,16 @@ class PipeProtocol(protocol.ProcessProtocol):
 
   def __init__(self, pipe):
     super().__init__()
-    self.pipe   = pipe
+    self.pipe     = pipe
     self.next : Optional["PipeProtocol"] = None
-    self.ready  = defer.Deferred()
-    self.result = b''
+    
+    # ready for stdin
+    self.ready    = defer.Deferred()  
+    
+    self.stdout   = b''
+    self.stderr   = b''
+    
+    self._exiting = False
 
   def set_next(self, proto: "PipeProtocol"):
     self.next = proto
@@ -44,16 +52,37 @@ class PipeProtocol(protocol.ProcessProtocol):
 
   def outReceived(self, data):
     if self.next:
-      self.next.ready.addCallbacks(PipeProtocol.forward, eb_crash, (data,))
+      self.next.ready.addCallback(PipeProtocol.forward, data)
     else:
-      self.result = self.result + data
- 
-  def outConnectionLost(self):
-    if self.next:
-      self.next.ready.addCallbacks(PipeProtocol.closeStdin, eb_crash)
-    else:
-      self.pipe.finished.callback(self.result)
+      self.stdout = self.stdout + data
 
+  def errReceived(self, data):
+    self.stderr = self.stderr + data
+
+  def processExited(self, reason : failure.Failure):
+    if isinstance(reason.value, error.ProcessTerminated):
+      proc = self.next
+      while proc is not None:
+        if proc._exiting == False:
+          proc.transport.signalProcess("TERM")
+          proc._exiting = True
+        proc = proc.next
+   
+      if self.pipe.finished is not None:
+        exc = ProcessError(self.stderr)
+        self.logger.error("{e}", e = repr(exc))
+        self.pipe.finished.errback(exc)
+        self.pipe.finished = None
+              
+    elif isinstance(reason.value, error.ProcessDone):
+      if self.next is None:
+        self.pipe.finished.callback(self.stdout)
+
+
+  def outConnectionLost(self):     
+    if self.next:
+      self.next.ready.addCallback(PipeProtocol.closeStdin)
+     
   def forward(self, data):
     self.transport.write(data)
     return self
@@ -80,7 +109,9 @@ class Pipe(object):
   def run(self, data : bytes = None) -> defer.Deferred:
     for cmd in self.factory.cmds:
       args = shlex.split(cmd)
-      pipe_protocol = PipeProtocol(self)
+      pipe_protocol     = PipeProtocol(self)
+      pipe_protocol.cmd = cmd
+
       proc = IReactorProcess(reactor).spawnProcess(pipe_protocol, args[0], args)
       self.procs.append(proc)
 
@@ -92,8 +123,8 @@ class Pipe(object):
 
     init : defer.Deferred = self.procs[0].proto.ready
     if data:
-      init.addCallbacks(PipeProtocol.forward, eb_crash, (data,))
-    init.addCallbacks(PipeProtocol.closeStdin, eb_crash)
+      init.addCallback(PipeProtocol.forward, data)
+    init.addCallback(PipeProtocol.closeStdin)
 
     return self.finished
 
@@ -111,21 +142,19 @@ class PipeFactory(object):
     pipe        = Pipe(self)
 
     initialized = defer.maybeDeferred(lambda d: d, data)
-    result      = defer.Deferred()
 
     self.cache[pipe] = SimpleNamespace(
       procs = []
     )
 
-    initialized.addCallbacks(pipe.run, eb_crash)
-    initialized.addCallbacks(self.finalize, eb_crash, (pipe, result))
+    initialized.addCallback(pipe.run)
+    initialized.addBoth(self.finalize, pipe)
 
-    return result
+    return initialized
   
-  def finalize(self, result, pipe: Pipe, d : defer.Deferred):
-    d.callback(result)
+  def finalize(self, result, pipe: Pipe):
     del self.cache[pipe]
-    return result
+    return result 
 
 #
 # main
@@ -154,13 +183,11 @@ if __name__ == '__main__':
 
   d1 = PipeFactory(cmds[1:]).run( data )
   d1.addCallback(cb_log_result, format = "with data    : {result}")
-  d1.addErrback(eb_crash)
 
   d2 = PipeFactory(cmds).run()
   d2.addCallback(cb_log_result, format = "without data : {result}")
-  d2.addErrback(eb_crash)
 
   dl = defer.DeferredList([d1, d2])
-  dl.addCallbacks(cb_exit, eb_crash)
+  dl.addBoth(cb_exit)
 
   reactor.run()

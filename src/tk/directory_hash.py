@@ -5,8 +5,7 @@ from twisted.logger import LogLevel
 
 from tk.callbacks import (
   cb_exit,
-  cb_log_result,
-  eb_crash
+  cb_log_result
 )
 
 from tk.pipe_factory import PipeFactory
@@ -37,7 +36,7 @@ class DirectoryHash(object):
     cmds = [ cmd.format(**kw) for cmd in cls.cmds ]    
 
     d = PipeFactory(cmds).run()
-    d.addCallbacks(lambda r: r.strip(), eb_crash)
+    d.addCallback(lambda r: r.strip())
     return d
 
 #
@@ -49,15 +48,13 @@ if __name__ == '__main__':
   initialize_logging(LogLevel.debug, {})
   logger = ContextLogger()
 
-  d3 = DirectoryHash.md5('./vmfs')
+  d3 = DirectoryHash.md5('./tests/data/foo')
   d3.addCallback(cb_log_result, "directory hash (md5): {result}")
-  d3.addErrback(eb_crash)
 
-  d4 = DirectoryHash.sha256('./vmfs')
+  d4 = DirectoryHash.sha256('./tests/data/foo')
   d4.addCallback(cb_log_result, "directory hash (sha256): {result}")
-  d4.addErrback(eb_crash)
 
   dl = defer.DeferredList([d3, d4])
-  dl.addCallbacks(cb_exit, eb_crash)
+  dl.addBoth(cb_exit)
 
   reactor.run()

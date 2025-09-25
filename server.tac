@@ -3,18 +3,18 @@
 #   - apt install pipenv
 #
 """
-PIPENV_PIPFILE=/home/dnlennon/Workspace/Sandbox/custom-iso/Pipfile \
+PIPENV_PIPFILE=/home/dnlennon/Workspace/Sandbox/twisted-klein/Pipfile \
 sudo -E pipenv \
-run twistd -ny app/iso/server.tac
+run twistd -ny server.tac
 """
 
 from twisted.application import service, strports
 from twisted.web import resource, server
 
-from iso.adapters import *
-from iso.utility_service import UtilityService
+from tk.adapters import *
+from tk.utility_service import UtilityService
 
-utility_service = UtilityService()
+utility_service = UtilityService({ 'foo' : '/tmp/foo'})
 
 application = service.Application('utility', uid = 1, gid = 1)
 serviceCollection = service.IServiceCollection(application)
@@ -24,5 +24,5 @@ strports.service("tcp:80", site).setServiceParent(application)
 
 # ssh dustin@192.168.1.102 cat cert/cert.tgz | tar -xzv
 strports.service(
-  "ssl:port=443:certKey=cert/carolina.pem:privateKey=cert/carolina.key", site
+  "ssl:port=443:certKey=/etc/ssl/newcerts/carolina.pem:privateKey=/etc/ssl/private/carolina.key", site
 ).setServiceParent(serviceCollection)

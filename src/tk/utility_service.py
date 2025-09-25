@@ -3,7 +3,7 @@ from zope.interface import implementer
 from twisted.internet import defer
 from twisted.application import service
 
-from tk.callbacks import eb_crash
+from tk.context_logger import ContextLogger
 from tk.interfaces import IUtilityService
 
 #
@@ -11,10 +11,14 @@ from tk.interfaces import IUtilityService
 #   - our primary service
 #
 from tk.directory_hash import DirectoryHash
+from tk.errors import UnknownFsidError
+from tk.pipe_factory import PipeFactory
 from tk.self_extractor import SelfExtractor
 
 @implementer(IUtilityService)
 class UtilityService(service.Service):
+  logger = ContextLogger()
+
   def __init__(self, fsmap = None):
     self._transient = set()
     self.fsmap      = fsmap
@@ -27,7 +31,10 @@ class UtilityService(service.Service):
       d = defer.succeed(fsid)
 
     except KeyError as e:
-      d = defer.fail(e)
+      exc = UnknownFsidError(fsid)
+      exc.__cause__ = e
+      self.logger.error("UtilityService.map: {e}", e = repr(exc))
+      raise exc
 
     else:
       d = defer.succeed(dirname)
@@ -49,8 +56,12 @@ class UtilityService(service.Service):
     self._transient.add(self_extractor)
 
     d = self.map(fsid)
-    d.addCallbacks(self_extractor.generate, eb_crash)
-    d.addCallbacks(self._cb_object_cleanup, eb_crash, (self_extractor,))
+    d.addCallback(self_extractor.generate)
+    d.addBoth(self._cb_object_cleanup, self_extractor)
+    return d
+
+  def getUserId(self) -> defer.Deferred:
+    d = PipeFactory(["/usr/bin/id"]).run()
     return d
 
   def _cb_object_cleanup(self, result, obj):

@@ -5,9 +5,7 @@ from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
 
 from tk.callbacks import (
-  cb_exit,
-  cb_log_result,
-  eb_crash
+  cb_exit
 )
 
 from tk.pipe_factory import PipeFactory
@@ -32,7 +30,7 @@ class SelfExtractor(object):
     cmds = [ cmd.format(**kw) for cmd in self.cmds ]
 
     d = PipeFactory(cmds).run()
-    d.addCallbacks(self.render, eb_crash)
+    d.addCallback(self.render)
     return d
   
   def render(self, b64encoded_tarball):
@@ -49,18 +47,8 @@ class SelfExtractor(object):
 if __name__ == '__main__':
   import argparse
   import sys
-  
-  parser = argparse.ArgumentParser()
-  parser.add_argument("script_id", type=int)
-  args = parser.parse_args()
 
-  if args.script_id == 0:
-    path = "./tests/data/foo"
-  elif args.script_id == 1:
-    path = "/tmp/pytest-of-dnlennon/pytest-93/test_elsewhere0"
-  else:
-    print(args.script_id)
-    sys.exit(1)
+  path = "./tests/data/foo"
 
   self_extractor = SelfExtractor("./tests/templates", "encoded_tarball.j2")
   d1 = self_extractor.generate(path)
@@ -68,7 +56,7 @@ if __name__ == '__main__':
   def cb_print(result):
     sys.stdout.write( result.decode() )
 
-  d1.addCallbacks(cb_print, eb_crash)
-  d1.addCallback(cb_exit)
+  d1.addCallback(cb_print)
+  d1.addBoth(cb_exit)
 
   reactor.run()

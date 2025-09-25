@@ -1,6 +1,7 @@
 import pytest
 import pytest_twisted
 
+from tk.errors import UnknownFsidError
 from tk.utility_service import UtilityService
 
 @pytest.fixture
@@ -22,6 +23,6 @@ def test_passthrough(mapper):
 
 @pytest_twisted.inlineCallbacks
 def test_keyerror(mapper):
-  with pytest.raises(KeyError):
+  with pytest.raises(UnknownFsidError):
     yield mapper({}, 'bar')
 

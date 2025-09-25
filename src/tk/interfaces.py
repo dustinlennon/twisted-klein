@@ -35,6 +35,12 @@ class ISelfExtractorService(Interface):
   def getSelfExtractor(self, fsid) -> defer.Deferred:
     pass    
 
+#
+# UserId
+#
+class IUserIdService(Interface):
+  def userId(self) -> defer.Deferred:
+    pass
 
 #
 # UtilityService
@@ -42,6 +48,7 @@ class ISelfExtractorService(Interface):
 #
 class IUtilityService(
     IDirectoryHashService,
-    ISelfExtractorService
+    ISelfExtractorService,
+    IUserIdService
   ):
   pass
