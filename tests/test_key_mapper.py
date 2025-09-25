@@ -2,13 +2,13 @@ import pytest
 import pytest_twisted
 
 from tk.errors import UnknownFsidError
-from tk.utility_service import UtilityService
+from tk.mapper import KeyMapper
 
 @pytest.fixture
 def mapper():
   def _mapper(fsmap, fsid):
-    us = UtilityService(fsmap)
-    return us.map(fsid)
+    km = KeyMapper(fsmap)
+    return km.mapper(fsid)
   return _mapper
 
 @pytest_twisted.inlineCallbacks

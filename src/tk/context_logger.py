@@ -7,6 +7,7 @@ from twisted.logger import (
   FileLogObserver,
   FilteringLogObserver,
   globalLogBeginner,
+  globalLogPublisher,
   ILogObserver,
   Logger,
   LogLevelFilterPredicate,
@@ -23,7 +24,8 @@ from tk.formatter import formatEvent
 
 def initialize_logging(
     default_loglevel : LogLevel,
-    ns_map : dict
+    ns_map : dict,
+    running_as_script = False
   ) -> ILogObserver:
 
   filter = LogLevelFilterPredicate(default_loglevel)
@@ -35,7 +37,10 @@ def initialize_logging(
     [ filter ]
   )
   
-  globalLogBeginner.beginLoggingTo([observer], redirectStandardIO = False)
+  if running_as_script:
+    globalLogBeginner.beginLoggingTo([], redirectStandardIO = False)
+  
+  globalLogPublisher.addObserver(observer)
 
   return observer
 

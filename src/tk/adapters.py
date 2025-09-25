@@ -37,21 +37,37 @@ class SelfExtractorFromUtilityService(NetcatRequestFactory):
   def cmd_pack(self, fsid) -> defer.Deferred:
     return self.service.getSelfExtractor(fsid)
 
+#
 # Adapter from IUtilityService 
 #           to resource.IResource
 #
 @implementer(resource.IResource)
-class ResourceFromUtilityService(
+class ResourceFromUtility(
     KleinDelegator,
     mixins.KWelcome,
     mixins.KDirectoryHash,
     mixins.KSelfExtractor
     ):
   
-  def __init__(self, service):
+  def __init__(self, service : IUtilityService):
     super().__init__(service)
 
+#
+# Adapter from ICleanup 
+#           to ICleanupContext
+#
+@implementer(ICleanupContext)
+class CleanupContextFromCleaner(object):
+  def __init__(self, cleaner : ICleanup):
+    self.cleaner = cleaner
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exc_type, exc_value, tb):
+    self.cleaner.cleanup()
+
+  
 #
 # Adapters class
 #
@@ -70,9 +86,14 @@ class Adapters(object):
       ISelfExtractorNetcatRequestFactory
     ),
     (
-      ResourceFromUtilityService,
+      ResourceFromUtility,
       IUtilityService,
       resource.IResource
+    ),
+    (
+      CleanupContextFromCleaner,
+      ICleanup,
+      ICleanupContext
     )
   ]
 

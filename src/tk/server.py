@@ -4,25 +4,35 @@
 #
 
 from twisted.internet import endpoints, reactor
+from twisted.internet.interfaces import IReactorCore
 from twisted.logger import LogLevel
 from twisted.web import resource, server
 
 from tk.adapters import *
 from tk.interfaces import (
+  ICleanupContext,
   IDirectoryHashNetcatRequestFactory,
   ISelfExtractorNetcatRequestFactory
 )
 from context_logger import initialize_logging
-from utility_service import UtilityService
+from tk.utility_service import (
+  KeyedUtilityService,
+  KeyedRelocatedUtilityService,
+  UtilityService
+)
 
 #
 # Create and serve endpoints
 #
 if __name__ == '__main__':
 
-  initialize_logging(LogLevel.debug, {})
+  initialize_logging(LogLevel.debug, {}, running_as_script = True)
 
-  s = UtilityService({ 'foo' : '/tmp/foo'})
+  # s = UtilityService() 
+  # s = KeyedUtilityService({ 'foo' : './tests/data/foo'})
+
+  s = KeyedRelocatedUtilityService({ 'foo' : './tests/data/foo'}, "/tmp/tkus")
+  IReactorCore(reactor).addSystemEventTrigger("during", "shutdown", s.cleanup)
 
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
   endpoint.listen( IDirectoryHashNetcatRequestFactory(s) )
@@ -32,5 +42,6 @@ if __name__ == '__main__':
 
   endpoint = endpoints.serverFromString(reactor, "tcp:8122")
   endpoint.listen( server.Site(resource.IResource(s)) )
+  
 
   reactor.run()

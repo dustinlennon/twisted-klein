@@ -2,6 +2,23 @@ from zope.interface import Interface
 from twisted.internet import defer
 
 #
+# ICleaner
+#
+class ICleanup(Interface):
+  def cleanup(self):
+    pass  
+
+#
+# ICleanupContext
+#
+class ICleanupContext(Interface):
+  def __enter__(self):
+    pass
+
+  def __exit__(self, exc_type, exc_value, tb):
+    pass
+
+#
 # DirectoryHash
 #
 class IDirectoryHashNetcatRequestFactory(Interface):
@@ -39,16 +56,18 @@ class ISelfExtractorService(Interface):
 # UserId
 #
 class IUserIdService(Interface):
-  def userId(self) -> defer.Deferred:
+  def getUserId(self) -> defer.Deferred:
     pass
 
 #
-# UtilityService
+# Utility
 #   - a compilation of existing interfaces
 #
 class IUtilityService(
     IDirectoryHashService,
     ISelfExtractorService,
-    IUserIdService
+    IUserIdService,
+    ICleanup
   ):
   pass
+

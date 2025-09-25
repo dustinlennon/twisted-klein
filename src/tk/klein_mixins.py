@@ -15,7 +15,7 @@ from tk.interfaces import (
   IUserIdService
 )
 
-class KBase(Tracer, verbose = True):
+class KBase(Tracer, verbose = False):
   app     = Klein()
   isLeaf  = True
 
@@ -63,7 +63,7 @@ class KDirectoryHash(KServiceBase):
     super().__init__(service)
     self.service = service
 
-  @app.route("/md5/<fsid>")
+  @app.route("/md5/<path:fsid>")
   def md5(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
     return self.service.getDirectoryHashMD5(fsid)
