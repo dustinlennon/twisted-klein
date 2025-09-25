@@ -1,19 +1,19 @@
 #
 # UtilityService
-#   $ pipenv run python3 src/iso/server.py
+#   $ pipenv run python3 src/tk/server.py
 #
 
 from twisted.internet import endpoints, reactor
 from twisted.logger import LogLevel
 from twisted.web import resource, server
 
-from iso.adapters import *
-from iso.interfaces import (
+from tk.adapters import *
+from tk.interfaces import (
   IDirectoryHashNetcatRequestFactory,
   ISelfExtractorNetcatRequestFactory
 )
-from iso.context_logger import initialize_logging
-from iso.utility_service import UtilityService
+from context_logger import initialize_logging
+from utility_service import UtilityService
 
 #
 # Create and serve endpoints
@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
   initialize_logging(LogLevel.debug, {})
 
-  s = UtilityService()
+  s = UtilityService({ 'foo' : '/tmp/foo'})
 
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
   endpoint.listen( IDirectoryHashNetcatRequestFactory(s) )

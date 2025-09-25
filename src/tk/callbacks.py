@@ -2,7 +2,6 @@ import traceback
 
 from twisted.internet import interfaces, reactor
 from twisted.logger import Logger, LogLevel
-from twisted.python.failure import Failure
 
 logger = Logger()
 

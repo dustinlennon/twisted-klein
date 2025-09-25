@@ -1,9 +1,8 @@
-
-from twisted.protocols import basic
 from twisted.internet import defer, protocol
+from twisted.logger import Logger
+from twisted.protocols import basic
 
-from callbacks import cb_log_result, eb_crash
-from context_logger import ContextLogger
+from tk.callbacks import cb_log_result
 
 #
 # Netcat Request
@@ -16,7 +15,7 @@ class NetcatRequestProtocol(basic.LineReceiver):
 
     d = self.factory.handle_request( request.decode() )
     d.addCallbacks(self._cb_request, self._eb_request)
-    d.addCallbacks(self._cb_lose_connection, eb_crash)
+    d.addBoth(self._cb_lose_connection)
     d.addCallback(cb_log_result, format = "finished lineReceived deferred")
 
   def _cb_request(self, value):
@@ -31,7 +30,7 @@ class NetcatRequestProtocol(basic.LineReceiver):
 
 class NetcatRequestFactory(protocol.ServerFactory):
   protocol  = NetcatRequestProtocol
-  logger    = ContextLogger()
+  logger = Logger()
 
   def handle_request(self, request : str) -> defer.Deferred:
     cmdargs = request.split(maxsplit = 1)
@@ -48,7 +47,6 @@ class NetcatRequestFactory(protocol.ServerFactory):
       d = defer.succeed(f"unsupported method: {cmd}".encode('utf8'))
 
     except TypeError as e:
-      self.logger.info("{e}", e = str(e))
       d = defer.succeed(f"syntax error: {request}".encode('utf8'))
 
     except Exception as e:      
