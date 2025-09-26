@@ -21,18 +21,7 @@ class ICleanupContext(Interface):
 #
 # DirectoryHash
 #
-class IDirectoryHashNetcatRequestFactory(Interface):
-  def cmd_md5(self, fsid) -> defer.Deferred:
-      """
-      syntax: md5 fsid
-      """
-
-  def cmd_sha256(self, fsid) -> defer.Deferred:
-      """
-      syntax: sha256 fsid
-      """
-
-class IDirectoryHashService(Interface):
+class IDirectoryHashAPI(Interface):
   def getDirectoryHashMD5(self, fsid) -> defer.Deferred:
     pass
 
@@ -42,20 +31,14 @@ class IDirectoryHashService(Interface):
 #
 # SelfExtractor
 #
-class ISelfExtractorNetcatRequestFactory(Interface):
-  def cmd_pack(self, fsid) -> defer.Deferred:
-    """
-    syntax: pack fsid
-    """
-
-class ISelfExtractorService(Interface):
+class ISelfExtractorAPI(Interface):
   def getSelfExtractor(self, fsid) -> defer.Deferred:
     pass    
 
 #
 # UserId
 #
-class IUserIdService(Interface):
+class IUserIdAPI(Interface):
   def getUserId(self) -> defer.Deferred:
     pass
 
@@ -64,10 +47,9 @@ class IUserIdService(Interface):
 #   - a compilation of existing interfaces
 #
 class IUtilityService(
-    IDirectoryHashService,
-    ISelfExtractorService,
-    IUserIdService,
-    ICleanup
+    IDirectoryHashAPI,
+    ISelfExtractorAPI,
+    IUserIdAPI
   ):
   pass
 

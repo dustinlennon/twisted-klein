@@ -37,6 +37,9 @@ class UtilityService(service.Service):
   def getUserId(self) -> defer.Deferred:
     return PipeFactory(["/usr/bin/id"]).run()
   
+  def cleanup(self):
+    pass
+
 #
 # _MappedUtilityService
 #

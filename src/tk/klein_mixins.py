@@ -9,11 +9,7 @@ from klein import Klein
 
 from tk.tracer import Tracer
 
-from tk.interfaces import (
-  IDirectoryHashService,
-  ISelfExtractorService,
-  IUserIdService
-)
+from tk.interfaces import *
 
 class KBase(Tracer, verbose = False):
   app     = Klein()
@@ -43,35 +39,32 @@ class KWelcome(KBase):
 
 #
 # ServiceBase
-#   - common __init__ signature for derived classes taking a 'service' arg
-#   - assign 'service' at derived-class level to preserve annotation typing
+#   - common __init__ signature for derived classes taking an 'obj' arg
+#   - assign 'obj' at derived-class level to preserve annotation typing
 #
 class KServiceBase(KBase):
-  def __init__(self, service):
+  def __init__(self, api):
     super().__init__()
  
-  # def cb_page(self, result : bytes, request : server.Request):
-  #   return result.decode()
-
 #
 # DirectoryHash
 #
 class KDirectoryHash(KServiceBase):
   app = KBase.app
 
-  def __init__(self, service : IDirectoryHashService):
-    super().__init__(service)
-    self.service = service
+  def __init__(self, api : IDirectoryHashAPI):
+    super().__init__(api)
+    self.api = api
 
   @app.route("/md5/<path:fsid>")
   def md5(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
-    return self.service.getDirectoryHashMD5(fsid)
+    return self.api.getDirectoryHashMD5(fsid)
 
   @app.route("/sha256/<fsid>")
   def sha256(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
-    return self.service.getDirectoryHashSHA256(fsid)
+    return self.api.getDirectoryHashSHA256(fsid)
 
 
 #
@@ -80,14 +73,14 @@ class KDirectoryHash(KServiceBase):
 class KSelfExtractor(KServiceBase):
   app = KBase.app
 
-  def __init__(self, service : ISelfExtractorService):
-    super().__init__(service)
-    self.service = service
+  def __init__(self, api : ISelfExtractorAPI):
+    super().__init__(api)
+    self.api = api
 
   @app.route("/postinstall/<fsid>")
   def postinstall(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
-    return self.service.getSelfExtractor(fsid)
+    return self.api.getSelfExtractor(fsid)
 
 
 #
@@ -96,11 +89,11 @@ class KSelfExtractor(KServiceBase):
 class KUserId(KServiceBase):
   app = KBase.app
 
-  def __init__(self, service : IUserIdService):
-    super().__init__(service)
-    self.service = service
+  def __init__(self, api : IUserIdAPI):
+    super().__init__(api)
+    self.api = api
 
   @app.route("/userid")
   def userid(self, request: server.Request):
     request.setHeader('Content-Type', 'text/plain')
-    return self.service.getUserId()
+    return self.api.getUserId()

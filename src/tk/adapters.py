@@ -1,5 +1,6 @@
 from zope.interface import implementer
 
+from twisted.internet import interfaces
 from twisted.python import components
 from twisted.web import resource
 
@@ -11,46 +12,47 @@ from tk.netcat_request import NetcatRequestFactory
 __all__ = []
 
 #
-# Adapter from IDirectoryHashService 
-#           to IDirectoryHashNetcatRequestFactory
+# Adapter from IDirectoryHashAPI
+#           to IProtocolFactory
 #
-@implementer(IDirectoryHashNetcatRequestFactory)
-class DirectoryHashFactoryFromUtilityService(NetcatRequestFactory):
-  def __init__(self, service):
-    self.service = service
+@implementer(interfaces.IProtocolFactory)
+class NetcatFactoryFromDirectoryHash(NetcatRequestFactory):
+  def __init__(self, api : IDirectoryHashAPI):
+    self.api = api
 
   def cmd_md5(self, fsid) -> defer.Deferred:
-    return self.service.getDirectoryHashMD5(fsid)
+    return self.api.getDirectoryHashMD5(fsid)
 
   def cmd_sha256(self, fsid) -> defer.Deferred:
-    return self.service.getDirectoryHashSHA256(fsid)
-
+    return self.api.getDirectoryHashSHA256(fsid)
+  
 #
-# Adapter from ISelfExtractorService 
-#           to ISelfExtractorNetcatRequestFactory
+# Adapter from ISelfExtractorAPI
+#           to IProtocolFactory
 #
-@implementer(ISelfExtractorNetcatRequestFactory)
-class SelfExtractorFromUtilityService(NetcatRequestFactory):
-  def __init__(self, service):
-    self.service = service
+@implementer(interfaces.IProtocolFactory)
+class NetcatFactoryFromSelfExtractor(NetcatRequestFactory):
+  def __init__(self, api : ISelfExtractorAPI):
+    self.api = api
 
   def cmd_pack(self, fsid) -> defer.Deferred:
-    return self.service.getSelfExtractor(fsid)
+    return self.api.getSelfExtractor(fsid)
 
 #
 # Adapter from IUtilityService 
 #           to resource.IResource
 #
 @implementer(resource.IResource)
-class ResourceFromUtility(
+class ResourceFromUtilityService(
     KleinDelegator,
     mixins.KWelcome,
     mixins.KDirectoryHash,
-    mixins.KSelfExtractor
+    mixins.KSelfExtractor,
+    mixins.KUserId
     ):
   
-  def __init__(self, service : IUtilityService):
-    super().__init__(service)
+  def __init__(self, obj : IUtilityService):
+    super().__init__(obj)
 
 #
 # Adapter from ICleanup 
@@ -76,17 +78,17 @@ class Adapters(object):
 
   args = [
     (
-      DirectoryHashFactoryFromUtilityService,
-      IDirectoryHashService,
-      IDirectoryHashNetcatRequestFactory
+      NetcatFactoryFromDirectoryHash,
+      IDirectoryHashAPI,
+      interfaces.IProtocolFactory
     ),
     (
-      SelfExtractorFromUtilityService,
-      ISelfExtractorService,
-      ISelfExtractorNetcatRequestFactory
+      NetcatFactoryFromSelfExtractor,
+      ISelfExtractorAPI,
+      interfaces.IProtocolFactory
     ),
     (
-      ResourceFromUtility,
+      ResourceFromUtilityService,
       IUtilityService,
       resource.IResource
     ),

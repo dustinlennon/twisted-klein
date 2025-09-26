@@ -6,9 +6,12 @@ from tk.callbacks import cb_log_result
 
 #
 # Netcat Request
-#   $ printf "md5 ./isofs\n" | nc -C localhost 8120
+#   $ echo "md5 foo" | nc -C localhost 8120
 #
 
+#
+# NetcatRequestProtocol
+#
 class NetcatRequestProtocol(basic.LineReceiver):
   def lineReceived(self, request):
     self.factory.logger.debug("received: {r}", r = request)
@@ -28,6 +31,9 @@ class NetcatRequestProtocol(basic.LineReceiver):
     self.factory.logger.error("{f}", f = str(failure))
     self.transport.write(b"unknown error\n")
 
+#
+# NetcatRequestFactory
+#
 class NetcatRequestFactory(protocol.ServerFactory):
   protocol  = NetcatRequestProtocol
   logger = Logger()
