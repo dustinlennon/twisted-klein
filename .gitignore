@@ -1,3 +1,9 @@
 pyenv
 .env
 twistd.pid
+dist/
+poetry.lock
+
+# Temporarily...
+DEPLOY.md
+deploy.sh

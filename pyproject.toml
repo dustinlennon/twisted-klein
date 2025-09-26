@@ -1,0 +1,22 @@
+[project]
+name = "tk"
+version = "0.1.2"
+description = "klein, with extensible components and pipes"
+authors = [
+    {name = "Dustin Lennon",email = "dustin.lennon@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "idna (==3.10)",
+    "jinja2 (==3.1.6)",
+    "klein (==24.8.0)",
+    "pyopenssl (==25.3.0)",
+    "service-identity (==24.2.0)",
+    "twisted (==25.5.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
