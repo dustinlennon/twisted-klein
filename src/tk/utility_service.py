@@ -1,3 +1,6 @@
+from importlib import resources
+import jinja2
+
 from zope.interface import implementer
 
 from twisted.internet import defer
@@ -24,15 +27,25 @@ from tk.self_extractor import SelfExtractor
 class UtilityService(service.Service):
   logger = ContextLogger()
 
+  def __init__(self):
+    super().__init__()
+    self.template = self.preload_template()
+
+  def preload_template(self):
+    # necessary because we drop privilege later, losing read access
+    env = jinja2.Environment(
+      loader = jinja2.PackageLoader("tk", "resources/templates")
+    )
+    return env.get_template("install.sh.j2")
+
   def getDirectoryHashMD5(self, fsid) -> defer.Deferred:
     return DirectoryHash.md5(fsid)
      
   def getDirectoryHashSHA256(self, fsid) -> defer.Deferred:
     return DirectoryHash.sha256(fsid)
 
-  def getSelfExtractor(self, fsid, template_dir = "./templates", template = "install.sh.j2") -> defer.Deferred:
-    self_extractor = SelfExtractor(template_dir, template)
-    return self_extractor.generate(fsid)
+  def getSelfExtractor(self, fsid) -> defer.Deferred:
+    return SelfExtractor(self.template).generate(fsid)
 
   def getUserId(self) -> defer.Deferred:
     return PipeFactory(["/usr/bin/id"]).run()
@@ -55,11 +68,9 @@ class _MappedUtilityService(BaseMapper, UtilityService):
     d.addCallback(DirectoryHash.sha256)
     return d
 
-  def getSelfExtractor(self, fsid, template_dir = "./templates", template = "install.sh.j2") -> defer.Deferred:
-    self_extractor = SelfExtractor(template_dir, template)
-
+  def getSelfExtractor(self, fsid) -> defer.Deferred:
     d = self.mapper(fsid)
-    d.addCallback(self_extractor.generate)
+    d.addCallback(SelfExtractor(self.template).generate)
     return d
 
 #
@@ -76,6 +87,9 @@ class KeyedUtilityService(KeyMapper, _MappedUtilityService):
 @implementer(IUtilityService)
 class KeyedRelocatedUtilityService(KeyMapper, RelocatedMixin, _MappedUtilityService):
   def __init__(self, fsmap, root):
+    msg = "; ".join([ m.__name__ for m in type(self).__mro__ ])
+    self.logger.info("{msg}", msg = msg)
+    super().__init__(fsmap)
     self.validate_args(fsmap, root)
 
   def stopService(self):

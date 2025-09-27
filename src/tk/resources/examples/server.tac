@@ -1,12 +1,15 @@
 #
 # UtilityService
-#   - apt install pipenv
+# 
+# prerequisites:
+#   $ apt install pipenv  # would prefer pipx, but sudo invokes
 #
 """
-PIPENV_PIPFILE=/home/dnlennon/Workspace/Sandbox/twisted-klein/Pipfile \
-sudo -E pipenv \
-run twistd -ny server.tac
+sudo -E pipenv run twistd \
+    -ny ./src/tk/resources/examples/server.tac
 """
+
+from importlib import resources
 
 from twisted.application import service, strports
 from twisted.logger import LogLevel
@@ -23,7 +26,8 @@ application = service.Application('utility', uid = 1, gid = 1)
 serviceCollection = service.IServiceCollection(application)
 
 # create utility_service
-utility_service = KeyedRelocatedUtilityService({ 'foo' : './tests/data/foo'}, "/run/tkus")
+src_path = resources.files("tk") / "resources" / "data" / "foo"
+utility_service = KeyedRelocatedUtilityService({ 'foo' : src_path }, "/run/tkus")
 utility_service.setServiceParent(serviceCollection)
 
 # create a site
@@ -38,3 +42,4 @@ strports.service(
 strports.service(
   "ssl:port=443:certKey=/etc/ssl/newcerts/carolina.pem:privateKey=/etc/ssl/private/carolina.key", site
 ).setServiceParent(serviceCollection)
+

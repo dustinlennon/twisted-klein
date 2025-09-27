@@ -1,12 +1,7 @@
 import os
-import jinja2
 
 from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
-
-from tk.callbacks import (
-  cb_exit
-)
 
 from tk.pipe_factory import PipeFactory
 
@@ -16,10 +11,7 @@ class SelfExtractor(object):
     """ /usr/bin/base64 - """
   ]
 
-  def __init__(self, template_dir, template):
-    self.env = jinja2.Environment(
-      loader = jinja2.FileSystemLoader( template_dir )
-    )
+  def __init__(self, template):
     self.template = template
 
   def generate(self, basedir) -> defer.Deferred:
@@ -34,8 +26,7 @@ class SelfExtractor(object):
     return d
   
   def render(self, b64encoded_tarball):
-    template = self.env.get_template( self.template )
-    script = template.render(
+    script = self.template.render(
       b64encoded_tarball = b64encoded_tarball.decode()
     )
     return script.encode('utf8')
@@ -45,18 +36,21 @@ class SelfExtractor(object):
 # main
 #
 if __name__ == '__main__':
-  import argparse
   import sys
+  import jinja2
+  from tk.callbacks import (
+    cb_log_result,
+    cb_exit
+  )
+  from tk.context_logger import initialize_logging, ContextLogger
 
-  path = "./tests/data/foo"
+  initialize_logging(LogLevel.debug, {})
+  logger = ContextLogger()
 
-  self_extractor = SelfExtractor("./tests/templates", "encoded_tarball.j2")
-  d1 = self_extractor.generate(path)
+  self_extractor = SelfExtractor( jinja2.Template("{{ b64encoded_tarball }}") )
+  d1 = self_extractor.generate("./tests/data/foo")
 
-  def cb_print(result):
-    sys.stdout.write( result.decode() )
-
-  d1.addCallback(cb_print)
+  d1.addCallback(cb_log_result, "{result}")
   d1.addBoth(cb_exit)
 
   reactor.run()

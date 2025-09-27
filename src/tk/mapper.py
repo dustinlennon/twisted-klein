@@ -24,6 +24,7 @@ class KeyMapper(BaseMapper):
   logger = ContextLogger()
 
   def __init__(self, fsmap : Optional[dict] = None):
+    super().__init__()
     self.fsmap = fsmap
 
   def mapper(self, fsid) -> defer.Deferred:

@@ -12,14 +12,14 @@ def mapper():
   return _mapper
 
 @pytest_twisted.inlineCallbacks
-def test_mapper(mapper):
-  mapped = yield mapper({'foo':'./tests/data/foo'}, 'foo')
-  assert mapped == "./tests/data/foo"
+def test_mapper(mapper, foo_path):
+  mapped = yield mapper({'foo':foo_path}, 'foo')
+  assert mapped == foo_path
 
 @pytest_twisted.inlineCallbacks
-def test_passthrough(mapper):
-  mapped = yield mapper(None, './tests/data/foo')
-  assert mapped == "./tests/data/foo"
+def test_passthrough(mapper, foo_path):
+  mapped = yield mapper(None, foo_path)
+  assert mapped == foo_path
 
 @pytest_twisted.inlineCallbacks
 def test_keyerror(mapper):
