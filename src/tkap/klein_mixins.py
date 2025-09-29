@@ -61,7 +61,7 @@ class KDirectoryHash(KServiceBase):
     request.setHeader('Content-Type', 'text/plain')
     return self.api.getDirectoryHashMD5(fsid)
 
-  @app.route("/sha256/<fsid>")
+  @app.route("/sha256/<path:fsid>")
   def sha256(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
     return self.api.getDirectoryHashSHA256(fsid)
@@ -77,7 +77,7 @@ class KSelfExtractor(KServiceBase):
     super().__init__(api)
     self.api = api
 
-  @app.route("/postinstall/<fsid>")
+  @app.route("/postinstall/<path:fsid>")
   def postinstall(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
     return self.api.getSelfExtractor(fsid)

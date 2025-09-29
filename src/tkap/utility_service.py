@@ -1,3 +1,4 @@
+from importlib import resources
 import jinja2
 
 from zope.interface import implementer
@@ -28,14 +29,7 @@ class UtilityService(service.Service):
 
   def __init__(self):
     super().__init__()
-    self.template = self.preload_template()
-
-  def preload_template(self):
-    # necessary because we drop privilege later, losing read access
-    env = jinja2.Environment(
-      loader = jinja2.PackageLoader("tkap", "resources/templates")
-    )
-    return env.get_template("install.sh.j2")
+    self.template_directory = None
 
   def getDirectoryHashMD5(self, fsid) -> defer.Deferred:
     return DirectoryHash.md5(fsid)
@@ -44,11 +38,22 @@ class UtilityService(service.Service):
     return DirectoryHash.sha256(fsid)
 
   def getSelfExtractor(self, fsid) -> defer.Deferred:
-    return SelfExtractor(self.template).generate(fsid)
+    template_name = "install.sh.j2"
+
+    if self.template_directory is None:
+      d = SelfExtractor.from_package(template_name).generate(fsid)
+    else:
+      d = SelfExtractor.from_filesystem(self.template_directory, template_name).generate(fsid)
+
+    return d
 
   def getUserId(self) -> defer.Deferred:
     return PipeFactory(["/usr/bin/id"]).run()
-  
+
+  def setTemplateDirectory(self, path) -> "UtilityService":
+    self.template_directory = path
+    return self
+
   def cleanup(self):
     pass
 
@@ -59,17 +64,17 @@ class _MappedUtilityService(BaseMapper, UtilityService):
 
   def getDirectoryHashMD5(self, fsid) -> defer.Deferred:
     d = self.mapper(fsid)
-    d.addCallback(DirectoryHash.md5)
+    d.addCallback(super().getDirectoryHashMD5)
     return d
      
   def getDirectoryHashSHA256(self, fsid) -> defer.Deferred:
     d = self.mapper(fsid)
-    d.addCallback(DirectoryHash.sha256)
+    d.addCallback(super().getDirectoryHashSHA256)
     return d
 
   def getSelfExtractor(self, fsid) -> defer.Deferred:
     d = self.mapper(fsid)
-    d.addCallback(SelfExtractor(self.template).generate)
+    d.addCallback(super().getSelfExtractor)
     return d
 
 #
@@ -84,12 +89,10 @@ class KeyedUtilityService(KeyMapper, _MappedUtilityService):
 # KeyedRelocatedUtilityService
 #
 @implementer(IUtilityService)
-class KeyedRelocatedUtilityService(KeyMapper, RelocatedMixin, _MappedUtilityService):
-  def __init__(self, fsmap, root):
-    msg = "; ".join([ m.__name__ for m in type(self).__mro__ ])
-    self.logger.info("{msg}", msg = msg)
+class KeyedRelocatedUtilityService(KeyMapper, _MappedUtilityService, RelocatedMixin):
+  def __init__(self, fsmap):
     super().__init__(fsmap)
-    self.validate_args(fsmap, root)
+    self.relocate(fsmap)
 
   def stopService(self):
     self.cleanup()

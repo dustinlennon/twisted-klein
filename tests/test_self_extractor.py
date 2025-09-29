@@ -10,14 +10,9 @@ from tkap.pipe_factory import PipeFactory
 from tkap.self_extractor import SelfExtractor
 
 @pytest.fixture
-def template():
-  return jinja2.Template("{{ b64encoded_tarball }}")  
-
-@pytest.fixture
-def encoded_tarball(template):
-
+def encoded_tarball():
   def _encoded_tarball(fsid):
-    return SelfExtractor(template).generate(fsid)
+    return SelfExtractor.from_raw("{{ b64encoded_tarball }}").generate(fsid)
      
   return _encoded_tarball
 

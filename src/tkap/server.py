@@ -4,6 +4,7 @@
 #
 
 from importlib import resources
+import sys
 
 from twisted.internet import endpoints, reactor
 from twisted.internet.interfaces import IReactorCore, IProtocolFactory
@@ -19,22 +20,16 @@ from tkap.utility_service import (
   UtilityService
 )
 
-#
-# Create and serve endpoints
-#
-if __name__ == '__main__':
-
+def cli():
   initialize_logging(LogLevel.debug, {}, running_as_script = True)
 
-
-  # UtilityService implementations:
-  #   s = UtilityService() 
+  # UtilityService
   src_path = resources.files("tkap") / "resources" / "data" / "foo"
   s = KeyedUtilityService({ 'foo' : src_path })
-  #   s = KeyedRelocatedUtilityService({ 'foo' : './tests/data/foo'}, "/tmp/tkap")
-
+  # s = UtilityService()
   IReactorCore(reactor).addSystemEventTrigger("during", "shutdown", s.cleanup)
 
+  # (componentized) endpoints
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
   endpoint.listen( IProtocolFactory(IDirectoryHashAPI(s)) )
 
@@ -45,3 +40,6 @@ if __name__ == '__main__':
   endpoint.listen( server.Site(resource.IResource(s)) )
   
   reactor.run()
+
+if __name__ == '__main__':
+  sys.exit(cli())

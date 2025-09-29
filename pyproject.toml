@@ -1,7 +1,7 @@
 [project]
-name = "tk"
+name = "tkap"
 version = "0.1.3"
-description = "klein, with extensible components and pipes"
+description = "twisted, klein, and pipes"
 authors = [
     {name = "Dustin Lennon",email = "dustin.lennon@gmail.com"}
 ]
@@ -26,3 +26,7 @@ build-backend = "poetry.core.masonry.api"
 include = [
     { path = "tests" }
 ]
+
+[project.scripts]
+installer = "tkap.installer:cli"
+test_server = "tkap.server:cli"
