@@ -7,9 +7,9 @@ from twisted.web import server
 
 from klein import Klein
 
-from tk.tracer import Tracer
+from tkap.tracer import Tracer
 
-from tk.interfaces import *
+from tkap.interfaces import *
 
 class KBase(Tracer, verbose = False):
   app     = Klein()

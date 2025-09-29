@@ -1,5 +1,4 @@
 from importlib import resources
-import os
 import pytest
 
 
@@ -16,7 +15,7 @@ def testdir(tmp_path):
 
 @pytest.fixture
 def foo_path():
-  return resources.files("tk") / "resources" / "data" / "foo"
+  return resources.files("tkap") / "resources" / "data" / "foo"
 
 @pytest.fixture
 def known_hashes():

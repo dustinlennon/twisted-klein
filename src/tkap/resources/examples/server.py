@@ -10,10 +10,10 @@ from twisted.internet.interfaces import IReactorCore, IProtocolFactory
 from twisted.logger import LogLevel
 from twisted.web import resource, server
 
-from tk.adapters import *
-from tk.context_logger import initialize_logging
-from tk.interfaces import *
-from tk.utility_service import (
+from tkap.adapters import *
+from tkap.context_logger import initialize_logging
+from tkap.interfaces import *
+from tkap.utility_service import (
   KeyedUtilityService,
   KeyedRelocatedUtilityService,
   UtilityService
@@ -29,9 +29,9 @@ if __name__ == '__main__':
 
   # UtilityService implementations:
   #   s = UtilityService() 
-  src_path = resources.files("tk") / "resources" / "data" / "foo"
+  src_path = resources.files("tkap") / "resources" / "data" / "foo"
   s = KeyedUtilityService({ 'foo' : src_path })
-  #   s = KeyedRelocatedUtilityService({ 'foo' : './tests/data/foo'}, "/tmp/tkus")
+  #   s = KeyedRelocatedUtilityService({ 'foo' : './tests/data/foo'}, "/tmp/tkap")
 
   IReactorCore(reactor).addSystemEventTrigger("during", "shutdown", s.cleanup)
 

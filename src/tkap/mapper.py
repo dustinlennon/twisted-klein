@@ -5,8 +5,8 @@ from typing import Optional
 
 from twisted.internet import defer
 
-from tk.context_logger import ContextLogger
-from tk.errors import UnknownFsidError
+from tkap.context_logger import ContextLogger
+from tkap.errors import UnknownFsidError
 
 
 #

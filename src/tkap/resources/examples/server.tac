@@ -15,9 +15,9 @@ from twisted.application import service, strports
 from twisted.logger import LogLevel
 from twisted.web import resource, server
 
-from tk.context_logger import initialize_logging
-from tk.adapters import *
-from tk.utility_service import KeyedRelocatedUtilityService
+from tkap.context_logger import initialize_logging
+from tkap.adapters import *
+from tkap.utility_service import KeyedRelocatedUtilityService
 
 initialize_logging(LogLevel.debug, {})
 
@@ -26,8 +26,8 @@ application = service.Application('utility', uid = 1, gid = 1)
 serviceCollection = service.IServiceCollection(application)
 
 # create utility_service
-src_path = resources.files("tk") / "resources" / "data" / "foo"
-utility_service = KeyedRelocatedUtilityService({ 'foo' : src_path }, "/run/tkus")
+src_path = resources.files("tkap") / "resources" / "data" / "foo"
+utility_service = KeyedRelocatedUtilityService({ 'foo' : src_path }, "/run/tkap")
 utility_service.setServiceParent(serviceCollection)
 
 # create a site

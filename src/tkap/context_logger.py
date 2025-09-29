@@ -16,7 +16,7 @@ from twisted.logger import (
 
 from twisted.python.compat import currentframe
 
-from tk.formatter import formatEvent
+from tkap.formatter import formatEvent
 
 #
 # Initialize logging

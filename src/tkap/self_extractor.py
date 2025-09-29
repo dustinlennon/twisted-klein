@@ -3,7 +3,7 @@ import os
 from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
 
-from tk.pipe_factory import PipeFactory
+from tkap.pipe_factory import PipeFactory
 
 class SelfExtractor(object):
   cmds = [
@@ -38,11 +38,11 @@ class SelfExtractor(object):
 if __name__ == '__main__':
   import sys
   import jinja2
-  from tk.callbacks import (
+  from tkap.callbacks import (
     cb_log_result,
     cb_exit
   )
-  from tk.context_logger import initialize_logging, ContextLogger
+  from tkap.context_logger import initialize_logging, ContextLogger
 
   initialize_logging(LogLevel.debug, {})
   logger = ContextLogger()

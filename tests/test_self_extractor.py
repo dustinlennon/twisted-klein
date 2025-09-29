@@ -6,8 +6,8 @@ import pytest_twisted
 
 from twisted.internet import defer
 
-from tk.pipe_factory import PipeFactory
-from tk.self_extractor import SelfExtractor
+from tkap.pipe_factory import PipeFactory
+from tkap.self_extractor import SelfExtractor
 
 @pytest.fixture
 def template():

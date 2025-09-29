@@ -1,8 +1,8 @@
 import pytest
 import pytest_twisted
 
-from tk.errors import UnknownFsidError
-from tk.mapper import KeyMapper
+from tkap.errors import UnknownFsidError
+from tkap.mapper import KeyMapper
 
 @pytest.fixture
 def mapper():

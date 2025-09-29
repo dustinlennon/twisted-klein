@@ -1,4 +1,3 @@
-from importlib import resources
 import jinja2
 
 from zope.interface import implementer
@@ -6,18 +5,18 @@ from zope.interface import implementer
 from twisted.internet import defer
 
 from twisted.application import service
-from tk.context_logger import ContextLogger
-from tk.interfaces import IUtilityService
+from tkap.context_logger import ContextLogger
+from tkap.interfaces import IUtilityService
 
-from tk.directory_hash import DirectoryHash
-from tk.mapper import (
+from tkap.directory_hash import DirectoryHash
+from tkap.mapper import (
   BaseMapper,
   KeyMapper,
   RelocatedMixin
 )
 
-from tk.pipe_factory import PipeFactory
-from tk.self_extractor import SelfExtractor
+from tkap.pipe_factory import PipeFactory
+from tkap.self_extractor import SelfExtractor
 
 
 #
@@ -34,7 +33,7 @@ class UtilityService(service.Service):
   def preload_template(self):
     # necessary because we drop privilege later, losing read access
     env = jinja2.Environment(
-      loader = jinja2.PackageLoader("tk", "resources/templates")
+      loader = jinja2.PackageLoader("tkap", "resources/templates")
     )
     return env.get_template("install.sh.j2")
 

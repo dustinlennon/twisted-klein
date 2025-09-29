@@ -1,8 +1,8 @@
 import pytest
 import pytest_twisted
 
-from tk.directory_hash import DirectoryHash
-# from tk.utility_service import KeyedUtilityService
+from tkap.directory_hash import DirectoryHash
+# from tkap.utility_service import KeyedUtilityService
 
 @pytest.fixture(params=['md5', 'sha256'])
 def hash_factory(request):
