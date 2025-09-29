@@ -7,9 +7,9 @@ from twisted.web import server
 
 from klein import Klein
 
-from tkap.tracer import Tracer
+from tk.tracer import Tracer
 
-from tkap.interfaces import *
+from tk.interfaces import *
 
 class KBase(Tracer, verbose = False):
   app     = Klein()
@@ -61,7 +61,7 @@ class KDirectoryHash(KServiceBase):
     request.setHeader('Content-Type', 'text/plain')
     return self.api.getDirectoryHashMD5(fsid)
 
-  @app.route("/sha256/<path:fsid>")
+  @app.route("/sha256/<fsid>")
   def sha256(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
     return self.api.getDirectoryHashSHA256(fsid)
@@ -77,7 +77,7 @@ class KSelfExtractor(KServiceBase):
     super().__init__(api)
     self.api = api
 
-  @app.route("/postinstall/<path:fsid>")
+  @app.route("/postinstall/<fsid>")
   def postinstall(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
     return self.api.getSelfExtractor(fsid)
