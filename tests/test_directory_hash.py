@@ -1,8 +1,8 @@
 import pytest
 import pytest_twisted
 
-from tk.directory_hash import DirectoryHash
-# from tk.utility_service import KeyedUtilityService
+from tkap.directory_hash import DirectoryHash
+# from tkap.utility_service import KeyedUtilityService
 
 @pytest.fixture(params=['md5', 'sha256'])
 def hash_factory(request):
@@ -14,8 +14,8 @@ def hash_factory(request):
   return _hash_factory
 
 @pytest_twisted.inlineCallbacks
-def test_hash_match(hash_factory, known_hashes):
-  method_name, d = hash_factory('./tests/data/foo')
+def test_hash_match(hash_factory, known_hashes, foo_path):
+  method_name, d = hash_factory( foo_path )
   assert (yield d) == known_hashes[method_name]
 
 @pytest_twisted.inlineCallbacks

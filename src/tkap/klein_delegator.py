@@ -2,7 +2,7 @@ from zope.interface import implementer
 from twisted.web import resource, server
 from klein import Klein
 
-import tk.klein_mixins as mixins
+import tkap.klein_mixins as mixins
 
 #
 # KleinDelegator

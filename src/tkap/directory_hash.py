@@ -3,12 +3,12 @@ import os
 from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
 
-from tk.callbacks import (
+from tkap.callbacks import (
   cb_exit,
   cb_log_result
 )
 
-from tk.pipe_factory import PipeFactory
+from tkap.pipe_factory import PipeFactory
 
 class DirectoryHash(object):
   cmds = [

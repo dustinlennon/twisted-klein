@@ -4,10 +4,10 @@ from twisted.internet import interfaces
 from twisted.python import components
 from twisted.web import resource
 
-from tk.interfaces import *
-from tk.klein_delegator import KleinDelegator
-import tk.klein_mixins as mixins
-from tk.netcat_request import NetcatRequestFactory
+from tkap.interfaces import *
+from tkap.klein_delegator import KleinDelegator
+import tkap.klein_mixins as mixins
+from tkap.netcat_request import NetcatRequestFactory
 
 __all__ = []
 

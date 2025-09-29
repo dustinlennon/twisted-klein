@@ -16,13 +16,13 @@ from twisted.internet.interfaces import IReactorProcess
 from twisted.logger import LogLevel
 from twisted.python import failure
 
-from tk.callbacks import (
+from tkap.callbacks import (
   cb_exit,
   cb_log_result
 )
 
-from tk.context_logger import ContextLogger
-from tk.errors import ProcessError
+from tkap.context_logger import ContextLogger
+from tkap.errors import ProcessError
 
 #
 # PipeProtocol class
