@@ -18,7 +18,3 @@ pytest-twisted = "*"
 [requires]
 python_version = "3.12"
 python_full_version = "3.12.3"
-
-[scripts]
-installer = { call = "tkap.installer:cli" }
-test_server = "python3 -m tkap.server"

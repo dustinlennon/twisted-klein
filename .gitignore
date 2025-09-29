@@ -3,7 +3,6 @@ pyenv
 twistd.pid
 dist/
 poetry.lock
-*pyc
 
 # Temporarily...
 DEPLOY.md

@@ -2,7 +2,7 @@ from twisted.internet import defer, protocol
 from twisted.logger import Logger
 from twisted.protocols import basic
 
-from tkap.callbacks import cb_log_result
+from tk.callbacks import cb_log_result
 
 #
 # Netcat Request

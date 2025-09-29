@@ -1,19 +1,19 @@
 
-import jinja2
-
 import pytest
 import pytest_twisted
 
 from twisted.internet import defer
 
-from tkap.pipe_factory import PipeFactory
-from tkap.self_extractor import SelfExtractor
+# from tk.utility_service import KeyedUtilityService
+from tk.pipe_factory import PipeFactory
+from tk.self_extractor import SelfExtractor
 
 @pytest.fixture
 def encoded_tarball():
   def _encoded_tarball(fsid):
-    return SelfExtractor.from_raw("{{ b64encoded_tarball }}").generate(fsid)
-     
+    self_extractor = SelfExtractor("./tests/templates", "encoded_tarball.j2")
+    return self_extractor.generate(fsid)
+    
   return _encoded_tarball
 
 @pytest.fixture
@@ -37,3 +37,4 @@ def test_self_extractor(encoded_tarball, testdir, md5sum_pipe, foo_hash):
   d = encoded_tarball(testdir)
   d.addCallback( md5sum_pipe.run )
   assert (yield d) == foo_hash
+
