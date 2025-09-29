@@ -1,5 +1,4 @@
-import os
-import tempfile
+from importlib import resources
 import pytest
 
 
@@ -13,6 +12,10 @@ def testdir(tmp_path):
     f.write("bye")
 
   return str(tmp_path)
+
+@pytest.fixture
+def foo_path():
+  return resources.files("tkap") / "resources" / "data" / "foo"
 
 @pytest.fixture
 def known_hashes():
