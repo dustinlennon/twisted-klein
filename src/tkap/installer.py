@@ -17,24 +17,27 @@ parser.add_argument("--uninstall", action="store_true")
 # Installer
 #
 class Installer(object):
-  def __init__(self):
-    pw_caller = getpwuid( os.getuid() )
-    if pw_caller.pw_name != "root":
-      raise RuntimeError("Installer must run as 'root'.")
 
   @property
   def path(self):
     return resources.files("tkap")
 
   def install(self):
+    self._validate_user()
     self._add_user()
     self._install_dirs()
     self._cp_resources()
     self._chown_resources()
 
   def uninstall(self):
+    self._validate_user()
     self._del_user()
     self._rm_resources()
+
+  def _validate_user(self):
+    pw_caller = getpwuid( os.getuid() )
+    if pw_caller.pw_name != "root":
+      raise RuntimeError("Installer must run as 'root'.")
 
   def _add_user(self,):
     cmd = shlex.split("/usr/sbin/adduser --quiet --system --group tkap")

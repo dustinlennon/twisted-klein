@@ -1,0 +1,19 @@
+[Unit]
+Description=Tkap Server
+
+[Service]
+
+Environment="HOME=/home/dnlennon"
+Environment="PIPENV_PIPFILE=/home/dnlennon/Workspace/Sandbox/twisted-klein/Pipfile"
+
+ExecStart=pipenv run twistd \
+    --nodaemon \
+    --pidfile= \
+    --python=/var/lib/tkap/resources/examples/server.tac
+
+WorkingDirectory=/var/lib/tkap/resources
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

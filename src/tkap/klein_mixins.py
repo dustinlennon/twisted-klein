@@ -68,19 +68,19 @@ class KDirectoryHash(KServiceBase):
 
 
 #
-# KSelfExtractor
+# KTarballTemplate
 #
-class KSelfExtractor(KServiceBase):
+class KTarballTemplate(KServiceBase):
   app = KBase.app
 
-  def __init__(self, api : ISelfExtractorAPI):
+  def __init__(self, api : ITarballTemplateAPI):
     super().__init__(api)
     self.api = api
 
   @app.route("/postinstall/<path:fsid>")
   def postinstall(self, request: server.Request, fsid):
     request.setHeader('Content-Type', 'text/plain')
-    return self.api.getSelfExtractor(fsid)
+    return self.api.getTarballTemplate(fsid)
 
 
 #

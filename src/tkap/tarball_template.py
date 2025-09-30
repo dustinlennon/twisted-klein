@@ -6,7 +6,7 @@ from twisted.logger import LogLevel
 
 from tkap.pipe_factory import PipeFactory
 
-class SelfExtractor(object):
+class TarballTemplate(object):
   cmds = [
     """ /usr/bin/tar -C {basedir} --sort=name --owner=0 --group=0 --mtime='1970-01-01' -cz . """,
     """ /usr/bin/base64 - """
@@ -67,8 +67,8 @@ if __name__ == '__main__':
   initialize_logging(LogLevel.debug, {})
   logger = ContextLogger()
 
-  self_extractor = SelfExtractor.from_raw( "{{ b64encoded_tarball }}" )
-  d1 = self_extractor.generate("./tests/data/foo")
+  tarball_template = TarballTemplate.from_raw( "{{ b64encoded_tarball }}" )
+  d1 = tarball_template.generate("./tests/data/foo")
 
   d1.addCallback(cb_log_result, "{result}")
   d1.addBoth(cb_exit)
