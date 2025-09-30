@@ -34,7 +34,7 @@ def cli():
   endpoint.listen( IProtocolFactory(IDirectoryHashAPI(s)) )
 
   endpoint = endpoints.serverFromString(reactor, "tcp:8121")
-  endpoint.listen( IProtocolFactory(ISelfExtractorAPI(s)) )
+  endpoint.listen( IProtocolFactory(ITarballTemplateAPI(s)) )
 
   endpoint = endpoints.serverFromString(reactor, "tcp:8122")
   endpoint.listen( server.Site(resource.IResource(s)) )

@@ -20,3 +20,11 @@ pipenv run test_server
 sudo -E pipenv run installer --install
 sudo -E pipenv run twistd -ny /var/lib/tkap/resources/examples/server.tac
 ```
+
+### systemd
+
+```bash
+sudo -E pipenv run installer --install
+sudo systemctl enable /var/lib/tkap/resources/examples/tkap.service
+sudo systemctl start tkap.service
+```

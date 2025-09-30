@@ -7,12 +7,12 @@ import pytest_twisted
 from twisted.internet import defer
 
 from tkap.pipe_factory import PipeFactory
-from tkap.self_extractor import SelfExtractor
+from tkap.tarball_template import TarballTemplate
 
 @pytest.fixture
 def encoded_tarball():
   def _encoded_tarball(fsid):
-    return SelfExtractor.from_raw("{{ b64encoded_tarball }}").generate(fsid)
+    return TarballTemplate.from_raw("{{ b64encoded_tarball }}").generate(fsid)
      
   return _encoded_tarball
 
@@ -33,7 +33,7 @@ def foo_hash(foo_encoded, md5sum_pipe):
   return pytest_twisted.blockon(d)
 
 @pytest_twisted.inlineCallbacks
-def test_self_extractor(encoded_tarball, testdir, md5sum_pipe, foo_hash):
+def test_tarball_template(encoded_tarball, testdir, md5sum_pipe, foo_hash):
   d = encoded_tarball(testdir)
   d.addCallback( md5sum_pipe.run )
   assert (yield d) == foo_hash

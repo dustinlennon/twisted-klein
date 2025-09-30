@@ -17,7 +17,7 @@ from tkap.mapper import (
 )
 
 from tkap.pipe_factory import PipeFactory
-from tkap.self_extractor import SelfExtractor
+from tkap.tarball_template import TarballTemplate
 
 
 #
@@ -30,6 +30,7 @@ class UtilityService(service.Service):
   def __init__(self):
     super().__init__()
     self.template_directory = None
+    self.template_name = None
 
   def getDirectoryHashMD5(self, fsid) -> defer.Deferred:
     return DirectoryHash.md5(fsid)
@@ -37,13 +38,13 @@ class UtilityService(service.Service):
   def getDirectoryHashSHA256(self, fsid) -> defer.Deferred:
     return DirectoryHash.sha256(fsid)
 
-  def getSelfExtractor(self, fsid) -> defer.Deferred:
-    template_name = "install.sh.j2"
-
-    if self.template_directory is None:
-      d = SelfExtractor.from_package(template_name).generate(fsid)
+  def getTarballTemplate(self, fsid) -> defer.Deferred:
+    if self.template_name is None:
+      d = TarballTemplate.from_raw("{{ b64encoded_tarball }}\n\n").generate(fsid)
+    elif self.template_directory is None:
+      d = TarballTemplate.from_package(self.template_name).generate(fsid)
     else:
-      d = SelfExtractor.from_filesystem(self.template_directory, template_name).generate(fsid)
+      d = TarballTemplate.from_filesystem(self.template_directory, self.template_name).generate(fsid)
 
     return d
 
@@ -53,6 +54,11 @@ class UtilityService(service.Service):
   def setTemplateDirectory(self, path) -> "UtilityService":
     self.template_directory = path
     return self
+
+  def setTemplateName(self, name) -> "UtilityService":
+    self.template_name = name
+    return self
+
 
   def cleanup(self):
     pass
@@ -72,9 +78,9 @@ class _MappedUtilityService(BaseMapper, UtilityService):
     d.addCallback(super().getDirectoryHashSHA256)
     return d
 
-  def getSelfExtractor(self, fsid) -> defer.Deferred:
+  def getTarballTemplate(self, fsid) -> defer.Deferred:
     d = self.mapper(fsid)
-    d.addCallback(super().getSelfExtractor)
+    d.addCallback(super().getTarballTemplate)
     return d
 
 #
@@ -89,7 +95,7 @@ class KeyedUtilityService(KeyMapper, _MappedUtilityService):
 # KeyedRelocatedUtilityService
 #
 @implementer(IUtilityService)
-class KeyedRelocatedUtilityService(KeyMapper, _MappedUtilityService, RelocatedMixin):
+class KeyedRelocatedUtilityService(KeyMapper, RelocatedMixin, _MappedUtilityService):
   def __init__(self, fsmap):
     super().__init__(fsmap)
     self.relocate(fsmap)

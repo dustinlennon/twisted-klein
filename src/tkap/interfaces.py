@@ -29,10 +29,10 @@ class IDirectoryHashAPI(Interface):
     pass
 
 #
-# SelfExtractor
+# TarballTemplate
 #
-class ISelfExtractorAPI(Interface):
-  def getSelfExtractor(self, fsid) -> defer.Deferred:
+class ITarballTemplateAPI(Interface):
+  def getTarballTemplate(self, fsid) -> defer.Deferred:
     pass    
 
 #
@@ -48,7 +48,7 @@ class IUserIdAPI(Interface):
 #
 class IUtilityService(
     IDirectoryHashAPI,
-    ISelfExtractorAPI,
+    ITarballTemplateAPI,
     IUserIdAPI
   ):
   pass

@@ -27,16 +27,16 @@ class NetcatFactoryFromDirectoryHash(NetcatRequestFactory):
     return self.api.getDirectoryHashSHA256(fsid)
   
 #
-# Adapter from ISelfExtractorAPI
+# Adapter from ITarballTemplateAPI
 #           to IProtocolFactory
 #
 @implementer(interfaces.IProtocolFactory)
-class NetcatFactoryFromSelfExtractor(NetcatRequestFactory):
-  def __init__(self, api : ISelfExtractorAPI):
+class NetcatFactoryFromTarballTemplate(NetcatRequestFactory):
+  def __init__(self, api : ITarballTemplateAPI):
     self.api = api
 
   def cmd_pack(self, fsid) -> defer.Deferred:
-    return self.api.getSelfExtractor(fsid)
+    return self.api.getTarballTemplate(fsid)
 
 #
 # Adapter from IUtilityService 
@@ -47,7 +47,7 @@ class ResourceFromUtilityService(
     KleinDelegator,
     mixins.KWelcome,
     mixins.KDirectoryHash,
-    mixins.KSelfExtractor,
+    mixins.KTarballTemplate,
     mixins.KUserId
     ):
   
@@ -83,8 +83,8 @@ class Adapters(object):
       interfaces.IProtocolFactory
     ),
     (
-      NetcatFactoryFromSelfExtractor,
-      ISelfExtractorAPI,
+      NetcatFactoryFromTarballTemplate,
+      ITarballTemplateAPI,
       interfaces.IProtocolFactory
     ),
     (
