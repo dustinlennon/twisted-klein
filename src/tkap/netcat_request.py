@@ -19,7 +19,6 @@ class NetcatRequestProtocol(basic.LineReceiver):
     d = self.factory.handle_request( request.decode() )
     d.addCallbacks(self._cb_request, self._eb_request)
     d.addBoth(self._cb_lose_connection)
-    d.addCallback(cb_log_result, format = "finished lineReceived deferred")
 
   def _cb_request(self, value):
     self.transport.write(value + b"\n")
@@ -43,19 +42,17 @@ class NetcatRequestFactory(protocol.ServerFactory):
     cmd     = cmdargs[0].lower()
     args    = cmdargs[1:]
     method_name = f"cmd_{cmd}"
-    d = defer.Deferred()
 
-    try:
-      m = getattr(self, method_name)
-      d = m(*args)
+    m = getattr(self, method_name, None)
 
-    except AttributeError as e:
+    if m is None:
       d = defer.succeed(f"unsupported method: {cmd}".encode('utf8'))
+    
+    else:
+      try:
+        d = m(*args)
 
-    except TypeError as e:
-      d = defer.succeed(f"syntax error: {request}".encode('utf8'))
-
-    except Exception as e:      
-      d = defer.fail(e)
+      except Exception as e:
+        d = defer.fail(e)  
 
     return d
