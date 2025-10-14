@@ -49,12 +49,12 @@ class ResourceFromIHello(KleinResourceMixin):
   app     = Klein()
   isLeaf  = True
 
-  def __init__(self, obj : IHello):
-    self.obj = obj
+  def __init__(self, delegate : IHello):
+    self.delegate = delegate
 
   @app.route("/hello/<to_whom>")
   def hello(self, request: server.Request, to_whom):
-    return self.obj.hello(to_whom)
+    return self.delegate.hello(to_whom)
 
   @app.route("/hello/")
   def hello_unknown(self, request: server.Request):

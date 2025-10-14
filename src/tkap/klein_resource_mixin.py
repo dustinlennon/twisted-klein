@@ -16,6 +16,5 @@ class KleinResourceMixin(object):
     self.app.resource().putChild(path, child)
 
   def render(self, request : server.Request):
-    self.logger.info("{request}", request = request)
     return self.app.resource().render(request)
 
