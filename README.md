@@ -16,11 +16,11 @@ Next, create an adapter.  `twisted-klein-and-pipes` provides two base classes to
 
 ### netcat adapter
 
-The "netcat" adapter creates an `IProtocolFactory` from an `IHello` interface using the `NetcatRequestFactory` base class.  For our purposes, this takes the form:
+The "netcat" adapter creates an `IProtocolFactory` from an `IHello` interface using the `NetcatServerFactory` base class.  For our purposes, this takes the form:
 
 ```python
 @implementer(IProtocolFactory)
-class NetcatFactoryFromIHello(NetcatRequestFactory):
+class NetcatFactoryFromIHello(NetcatServerFactory):
   def __init__(self, delegate : IHello):
     self.delegate = delegate
 
@@ -124,29 +124,74 @@ From the components perspective, the interesting bit is that calls to the `Netca
 See [src/tkap/resources/examples/hello_world.py](src/tkap/resources/examples/hello_world.py) for the full code.
 
 
-Servers
+Cloudconf Servers
 ----
 
-To start, there's a test server, configured to run as the active user from a python script.  For a more productionalized approach, there's also a twistd variant that creates a "tkap" user/group; creates /run/tkap and /var/lib/tkap, owned by tkap; copies resources into /var/lib/tkap; and drops privileges to tkap after launching.
+Each of the following Cloudconf invocations provides a different execution context which we demonstrate subsequently.
 
 
-### test server
+### script
+
+To start, there's a variant configured to run as the active user from a python script.
 
 ```bash
-pipenv run test_server
+pipenv run python3 src/tkap/resources/examples/cloudconf.py
 ```
 
-### twistd server
+```
+$ echo "env_pwd" | nc -C localhost 8121
+/home/dnlennon/Workspace/Sandbox/twisted-klein
+
+$ echo "env_id" | nc -C localhost 8121
+uid=1000(dnlennon) gid=1000(dnlennon) groups=1000(dnlennon),...
+```
+
+### twistd
+
+For a more productionalized approach, there's a twistd variant that creates a "tkap" user/group; creates /run/tkap and /var/lib/tkap, owned by tkap; copies resources into /var/lib/tkap; and drops privileges to tkap after launching.
+
+This requires the prerequisite steps
+- to ensure that `pipenv` will be available systemwide; and,
+- to create the tkap user/group; the /run/tkap and /var/lib/tkap directories; and,
+- to copy the resources directory into /var/lib/tkap
 
 ```bash
+sudo apt install pipenv
 sudo -E pipenv run installer --install
-sudo -E pipenv run twistd -ny /var/lib/tkap/resources/examples/server.tac
 ```
+
+Then, invoking twistd:
+
+```bash
+sudo -E pipenv run twistd -ny /var/lib/tkap/resources/examples/tkap.tac
+```
+
+Now, the reported active user/group is `tkap:tkap`.
+
+```
+$ echo "env_id" | nc -C localhost 8121
+uid=137(tkap) gid=144(tkap) groups=144(tkap)
+```
+
 
 ### systemd
+
+Finally, there's a systemd service.  For this to work, update `/var/lib/tkap/resources/fsmap.yaml` to reflect the paths to be mapped.
 
 ```bash
 sudo -E pipenv run installer --install
 sudo systemctl enable /var/lib/tkap/resources/examples/tkap.service
+sudoedit /var/lib/tkap/resources/fsmap.yaml
 sudo systemctl start tkap.service
 ```
+
+The environmental context is
+
+```
+$ echo "env_pwd" | nc -C localhost 8121
+/run/tkap
+
+$ echo "env_id" | nc -C localhost 8121
+uid=137(tkap) gid=144(tkap) groups=144(tkap)
+```
+

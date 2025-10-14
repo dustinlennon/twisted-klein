@@ -25,7 +25,7 @@ from twisted.web.resource import IResource
 from klein import Klein
 
 from tkap.klein_resource_mixin import KleinResourceMixin
-from tkap.netcat_request import NetcatRequestFactory
+from tkap.netcat_request import NetcatServerFactory
 
 #
 # A simple interface
@@ -38,7 +38,7 @@ class IHello(Interface):
 # Adapter for a "netcat" endpoint
 #
 @implementer(IProtocolFactory)
-class NetcatFactoryFromIHello(NetcatRequestFactory):
+class NetcatFactoryFromIHello(NetcatServerFactory):
   def __init__(self, obj : IHello):
     self.obj = obj
 

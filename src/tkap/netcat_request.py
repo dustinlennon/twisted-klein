@@ -10,9 +10,9 @@ from tkap.callbacks import cb_log_result
 #
 
 #
-# NetcatRequestProtocol
+# NetcatProtocol
 #
-class NetcatRequestProtocol(basic.LineReceiver):
+class NetcatProtocol(basic.LineReceiver):
   def lineReceived(self, request):
     self.factory.logger.debug("received: {r}", r = request)
 
@@ -33,8 +33,8 @@ class NetcatRequestProtocol(basic.LineReceiver):
 #
 # NetcatRequestFactory
 #
-class NetcatRequestFactory(protocol.ServerFactory):
-  protocol  = NetcatRequestProtocol
+class NetcatServerFactory(protocol.ServerFactory):
+  protocol  = NetcatProtocol
   logger = Logger()
 
   def handle_request(self, request : str) -> defer.Deferred:

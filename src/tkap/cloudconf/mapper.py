@@ -11,17 +11,10 @@ from tkap.errors import UnknownFsidError
 
 
 #
-# BaseMapper
-#
-class BaseMapper(object):
-  def map(self) -> defer.Deferred:
-    raise NotImplementedError("implement 'mapper' method in subclass")
-
-#
 # KeyMapper
 #   - fsid is keyed to a user specified path
 #
-class KeyMapper(BaseMapper):
+class KeyMapper(object):
   logger = ContextLogger()
 
   def __init__(self, fsmap : Optional[dict] = None):

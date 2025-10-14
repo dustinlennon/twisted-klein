@@ -1,7 +1,7 @@
 from twisted.internet import defer
 from tkap.cloudconf.interfaces import ICloudconfService
 
-class CloudconfNetcat(object):
+class CloudconfFactoryMethods(object):
 
   def __init__(self, delegate : ICloudconfService):
       self.delegate = delegate
@@ -14,3 +14,9 @@ class CloudconfNetcat(object):
   
   def cmd_pack(self, fsid) -> defer.Deferred:
     return self.delegate.getTarballTemplate(fsid)
+
+  def cmd_env_id(self) -> defer.Deferred:
+    return self.delegate.getEnvId()
+  
+  def cmd_env_pwd(self) -> defer.Deferred:
+    return self.delegate.getEnvPwd()

@@ -5,20 +5,20 @@ from twisted.python import components
 from twisted.web import resource
 
 from tkap.interfaces import *
-from tkap.cloudconf.cloudconf_resource import CloudconfResource
-from tkap.cloudconf.cloudconf_netcat import CloudconfNetcat
+from tkap.cloudconf.cloudconf_routes import CloudconfRoutes
+from tkap.cloudconf.cloudconf_factory_methods import CloudconfFactoryMethods
 from tkap.cloudconf.interfaces import ICloudconfService
 from tkap.klein_resource_mixin import KleinResourceMixin
-from tkap.netcat_request import NetcatRequestFactory
+from tkap.netcat_request import NetcatServerFactory
 
 __all__ = []
 
 @implementer(interfaces.IProtocolFactory)
-class ProtocolFactoryFromCloudconfService(CloudconfNetcat, NetcatRequestFactory):
+class ProtocolFactoryFromCloudconfService(CloudconfFactoryMethods, NetcatServerFactory):
   pass
 
 @implementer(resource.IResource)
-class ResourceFromCloudconfService(CloudconfResource, KleinResourceMixin):
+class ResourceFromCloudconfService(CloudconfRoutes, KleinResourceMixin):
   pass
 
 #
