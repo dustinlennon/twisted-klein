@@ -14,7 +14,7 @@ from tkap.errors import UnknownFsidError
 # BaseMapper
 #
 class BaseMapper(object):
-  def mapper(self) -> defer.Deferred:
+  def map(self) -> defer.Deferred:
     raise NotImplementedError("implement 'mapper' method in subclass")
 
 #
@@ -28,7 +28,7 @@ class KeyMapper(BaseMapper):
     super().__init__()
     self.fsmap = fsmap
 
-  def mapper(self, fsid) -> defer.Deferred:
+  def map(self, fsid) -> defer.Deferred:
     try:
       dirname = self.fsmap[fsid]
 
@@ -56,8 +56,7 @@ class RelocatedMixin(object):
     new_root = Path("/run/tkap")
 
     if fsmap is None:
-      self.fsmap = None
-      return
+      return None
 
     elif not isinstance(fsmap, dict):
       raise ValueError("if specified, fsmap must be a dict")
@@ -78,7 +77,7 @@ class RelocatedMixin(object):
       new_location = self._install(src, dst, uid, gid)
       new_fsmap[k] = new_location
 
-    self.fsmap  = new_fsmap
+    return new_fsmap
 
   def _install(self, src : Path, dst : Path, uid, gid):
     self.logger.info("installing {src} to {dst}", src = src, dst = dst)
@@ -94,7 +93,3 @@ class RelocatedMixin(object):
 
     return new_location
    
-  def cleanup(self):
-    for pth in self.fsmap.values():
-      self.logger.info("removing {pth}", pth = pth)
-      shutil.rmtree(pth)

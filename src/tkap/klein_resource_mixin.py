@@ -2,14 +2,11 @@ from zope.interface import implementer
 from twisted.web import resource, server
 from klein import Klein
 
-import tkap.klein_mixins as mixins
-
 #
-# KleinDelegator
-#   - delegate Resource methods to klein instance
+# KleinResourceMixin
 #
 @implementer(resource.IResource)
-class KleinDelegator(mixins.KBase):
+class KleinResourceMixin(object):
   app : Klein
 
   def getChildWithDefault(self, name, request):

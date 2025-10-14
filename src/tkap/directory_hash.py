@@ -3,11 +3,6 @@ import os
 from twisted.internet import defer, reactor
 from twisted.logger import LogLevel
 
-from tkap.callbacks import (
-  cb_exit,
-  cb_log_result
-)
-
 from tkap.pipe_factory import PipeFactory
 
 class DirectoryHash(object):
@@ -43,6 +38,7 @@ class DirectoryHash(object):
 # main
 #
 if __name__ == '__main__':
+  from tkap.callbacks import cb_exit, cb_log_result
   from context_logger import initialize_logging, ContextLogger
 
   initialize_logging(LogLevel.debug, {})

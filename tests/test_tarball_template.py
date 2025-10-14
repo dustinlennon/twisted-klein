@@ -1,6 +1,4 @@
 
-import jinja2
-
 import pytest
 import pytest_twisted
 
