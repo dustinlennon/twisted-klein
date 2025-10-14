@@ -33,11 +33,11 @@ class ConcreteHello(object):
     return msg
 ```
 
-Next, we'll create an adaptor.  `twisted-klein-and-pipes` provides two base classes to facilitate this, a "netcat" adapter and a Klein HTTP adaptor.
+Next, we'll create an adapter.  `twisted-klein-and-pipes` provides two base classes to facilitate this, a "netcat" adapter and a Klein HTTP adapter.
 
-### netcat adaptor
+### netcat adapter
 
-The "netcat" adaptor creates an `IProtocolFactory` from an `IHello` interface using the `NetcatRequestFactory` base class.  In our example, this takes the form:
+The "netcat" adapter creates an `IProtocolFactory` from an `IHello` interface using the `NetcatRequestFactory` base class.  In our example, this takes the form:
 
 ```python
 @implementer(IProtocolFactory)
@@ -52,22 +52,22 @@ class NetcatFactoryFromIHello(NetcatRequestFactory):
 
 A client API might take the form `echo "hello world" | nc -C localhost 8120`, and this would map to the `cmd_hello` function with `to_whom` populated by "world".
 
-### Klein HTTP adaptor
+### Klein HTTP adapter
 
-The Klein HTTP adaptor creates an `IResource` from an `IHello` interface using the `KleinDelegator` base class.  In our example this takes the form:
+The Klein HTTP adapter creates an `IResource` from an `IHello` interface using the `KleinDelegator` base class.  In our example this takes the form:
 
 ```python
 @implementer(IResource)
-class ResourceFromIHello(KleinDelegator):
+class ResourceFromIHello(KleinResourceMixin):
   app     = Klein()
   isLeaf  = True
 
-  def __init__(self, obj : IHello):
-    self.obj = obj
+  def __init__(self, delegate : IHello):
+    self.delegate = delegate
 
   @app.route("/hello/<to_whom>")
   def hello(self, request: server.Request, to_whom):
-    return self.obj.hello(to_whom)
+    return self.delegate.hello(to_whom)
 
   @app.route("/hello/")
   def hello_unknown(self, request: server.Request):
@@ -76,9 +76,9 @@ class ResourceFromIHello(KleinDelegator):
 
 A client API might take the form `curl -L -s http://localhost:8122/hello` or `curl -L -s http://localhost:8122/hello/world`.  The former redirects into `hello_unknown`; the latter, without redirection, into `hello`.
 
-### register adaptors
+### register adapters
 
-The component model requires adaptors to be registered.  This happens as:
+The component model requires adapters to be registered.  This happens as:
 
 ```python
 components.registerAdapter(NetcatFactoryFromIHello, IHello, IProtocolFactory)
@@ -103,7 +103,7 @@ def main():
 
   # a "netcat" endpoint
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
-  endpoint.listen( IProtocolFactory(IHello(hello)) )
+  endpoint.listen( IProtocolFactory(hello) )
 
   # an HTTP endpoint
   site = server.Site( IResource(hello) )
