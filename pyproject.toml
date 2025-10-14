@@ -1,6 +1,6 @@
 [project]
 name = "tkap"
-version = "0.1.8"
+version = "0.1.9"
 description = "twisted, klein, and pipes"
 authors = [
     {name = "Dustin Lennon",email = "dustin.lennon@gmail.com"}
