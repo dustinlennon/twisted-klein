@@ -1,3 +1,8 @@
+#
+# Startup:
+#   $ pipenv run python3 src/tkap/resources/examples/hello_world.py
+#
+
 import sys
 
 from zope.interface import implementer, Interface
@@ -20,7 +25,7 @@ from twisted.web.resource import IResource
 from klein import Klein
 
 from tkap.klein_resource_mixin import KleinResourceMixin
-from tkap.netcat_request import NetcatRequestFactory
+from tkap.netcat_request import NetcatServerFactory
 
 #
 # A simple interface
@@ -33,7 +38,7 @@ class IHello(Interface):
 # Adapter for a "netcat" endpoint
 #
 @implementer(IProtocolFactory)
-class NetcatFactoryFromIHello(NetcatRequestFactory):
+class NetcatFactoryFromIHello(NetcatServerFactory):
   def __init__(self, obj : IHello):
     self.obj = obj
 
@@ -98,15 +103,15 @@ def main():
   ]
   globalLogBeginner.beginLoggingTo( observers )
 
-  # Create an object that implements the IHello interface
-  hello = ConcreteHello("world")
+  # Create a component
+  adaptable = ConcreteHello("world")
 
   # a "netcat" endpoint
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
-  endpoint.listen( IProtocolFactory(hello) )
+  endpoint.listen( IProtocolFactory(adaptable) )
 
   # an HTTP endpoint
-  site = server.Site( IResource(hello) )
+  site = server.Site( IResource(adaptable) )
   endpoint = endpoints.serverFromString(reactor, "tcp:8122")
   endpoint.listen( site )
   

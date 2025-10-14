@@ -7,7 +7,6 @@ from twisted.application import service
 
 from tkap.cloudconf.interfaces import ICloudconfService
 from tkap.cloudconf.mapper import (
-  BaseMapper,
   KeyMapper,
   RelocatedMixin
 )
@@ -29,12 +28,22 @@ class CloudconfService(service.Service):
     self.template_directory = None
     self.template_name = None
 
+  def setTemplateDirectory(self, path) -> "CloudconfService":
+    self.template_directory = path
+    return self
+
+  def setTemplateName(self, name) -> "CloudconfService":
+    self.template_name = name
+    return self
+
+  # -- IDirectoryHash ---------------------------------------------------------
   def getDirectoryHashMd5(self, fsid) -> defer.Deferred:
     return DirectoryHash.md5(fsid)
      
   def getDirectoryHashSha256(self, fsid) -> defer.Deferred:
     return DirectoryHash.sha256(fsid)
 
+  # -- ITarballTemplate -------------------------------------------------------
   def getTarballTemplate(self, fsid) -> defer.Deferred:
     if self.template_name is None:
       d = TarballTemplate.from_raw("{{ b64encoded_tarball }}\n\n").generate(fsid)
@@ -45,26 +54,22 @@ class CloudconfService(service.Service):
 
     return d
 
-  def getUserId(self) -> defer.Deferred:
+  # -- IEnvironment -----------------------------------------------------------
+  def getEnvId(self) -> defer.Deferred:
     return PipeFactory(["/usr/bin/id"]).run()
 
-  def setTemplateDirectory(self, path) -> "CloudconfService":
-    self.template_directory = path
-    return self
+  def getEnvPwd(self) -> defer.Deferred:
+    return PipeFactory(["/usr/bin/pwd"]).run()
 
-  def setTemplateName(self, name) -> "CloudconfService":
-    self.template_name = name
-    return self
-
-  def cleanup(self):
-    pass
 
 #
-# _MappedCloudconfService
+# KeyedCloudConfService
 #
-class _MappedCloudconfService(CloudconfService):
-
-  mapper : BaseMapper
+@implementer(ICloudconfService)
+class KeyedCloudconfService(CloudconfService):
+  def __init__(self, fsmap):
+    super().__init__()
+    self.mapper = KeyMapper(fsmap)
 
   def getDirectoryHashMd5(self, fsid) -> defer.Deferred:
     d = self.mapper.map(fsid)
@@ -81,14 +86,6 @@ class _MappedCloudconfService(CloudconfService):
     d.addCallback(super().getTarballTemplate)
     return d
 
-#
-# KeyedCloudConfService
-#
-@implementer(ICloudconfService)
-class KeyedCloudconfService(_MappedCloudconfService):
-  def __init__(self, fsmap):
-    super().__init__()
-    self.mapper = KeyMapper(fsmap)
 
 #
 # InstalledCloudConfService
@@ -100,8 +97,8 @@ class InstalledCloudconfService(KeyedCloudconfService, RelocatedMixin):
     super().__init__(fsmap)
 
   def stopService(self):
+    super().stopService()
     self.cleanup()
-    return super().stopService()
   
   def cleanup(self):
     for pth in self.mapper.fsmap.values():

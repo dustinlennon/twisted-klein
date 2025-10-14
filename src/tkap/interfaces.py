@@ -19,9 +19,12 @@ class ITarballTemplate(Interface):
     pass    
 
 #
-# UserId
+# Environment
 #
-class IUserId(Interface):
-  def getUserId(self) -> defer.Deferred:
+class IEnvironment(Interface):
+  def getEnvId(self) -> defer.Deferred:
+    pass
+
+  def getEnvPwd(self) -> defer.Deferred:
     pass
 

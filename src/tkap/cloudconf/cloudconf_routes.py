@@ -9,7 +9,7 @@ from tkap.tracer import Tracer
 #
 # CloudconfResource
 #
-class CloudconfResource(Tracer, verbose = True):
+class CloudconfRoutes(Tracer, verbose = True):
   app     = Klein()
   isLeaf  = True
 
@@ -43,7 +43,3 @@ class CloudconfResource(Tracer, verbose = True):
     request.setHeader('Content-Type', 'text/plain')
     return self.service.getTarballTemplate(fsid)
 
-  @app.route("/userid")
-  def userid(self, request: server.Request):
-    request.setHeader('Content-Type', 'text/plain')
-    return self.service.getUserId()

@@ -5,6 +5,6 @@ class ICloudconfService(
     service.IService,
     IDirectoryHash,
     ITarballTemplate,
-    IUserId
+    IEnvironment
   ):
   pass
