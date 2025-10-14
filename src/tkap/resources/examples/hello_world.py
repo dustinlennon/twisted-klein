@@ -1,3 +1,8 @@
+#
+# Startup:
+#   $ pipenv run python3 src/tkap/resources/examples/hello_world.py
+#
+
 import sys
 
 from zope.interface import implementer, Interface
@@ -98,15 +103,15 @@ def main():
   ]
   globalLogBeginner.beginLoggingTo( observers )
 
-  # Create an object that implements the IHello interface
-  hello = ConcreteHello("world")
+  # Create a component
+  adaptable = ConcreteHello("world")
 
   # a "netcat" endpoint
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
-  endpoint.listen( IProtocolFactory(hello) )
+  endpoint.listen( IProtocolFactory(adaptable) )
 
   # an HTTP endpoint
-  site = server.Site( IResource(hello) )
+  site = server.Site( IResource(adaptable) )
   endpoint = endpoints.serverFromString(reactor, "tcp:8122")
   endpoint.listen( site )
   

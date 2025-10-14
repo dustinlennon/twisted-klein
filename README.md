@@ -1,7 +1,7 @@
 # twisted-klein-and-pipes
 
 
-Quick start: Hello World
+Components: Hello World
 ----
 
 Start with an interface,
@@ -12,45 +12,24 @@ class IHello(Interface):
     pass
 ```
 
-and a concrete implementation:
-
-```python
-@implementer(IHello)
-class ConcreteHello(object):
-  def __init__(self, whoami):
-    self.whoami = whoami
-
-  def hello(self, to_whom):
-    if to_whom is None:
-      msg = f"Hello, I'm {self.whoami}.\n"
-
-    elif to_whom == self.whoami:
-      msg = "Thanks!\n"
-
-    else:
-      msg = f"I'm not {to_whom}.\n"
-
-    return msg
-```
-
-Next, we'll create an adapter.  `twisted-klein-and-pipes` provides two base classes to facilitate this, a "netcat" adapter and a Klein HTTP adapter.
+Next, create an adapter.  `twisted-klein-and-pipes` provides two base classes to facilitate this, a "netcat" adapter and a Klein HTTP adapter.
 
 ### netcat adapter
 
-The "netcat" adapter creates an `IProtocolFactory` from an `IHello` interface using the `NetcatRequestFactory` base class.  In our example, this takes the form:
+The "netcat" adapter creates an `IProtocolFactory` from an `IHello` interface using the `NetcatRequestFactory` base class.  For our purposes, this takes the form:
 
 ```python
 @implementer(IProtocolFactory)
 class NetcatFactoryFromIHello(NetcatRequestFactory):
-  def __init__(self, obj : IHello):
-    self.obj = obj
+  def __init__(self, delegate : IHello):
+    self.delegate = delegate
 
   def cmd_hello(self, to_whom = None) -> defer.Deferred:
-    response = self.obj.hello(to_whom)
+    response = self.delegate.hello(to_whom)
     return defer.succeed( response.encode("utf8") )
 ```
 
-A client API might take the form `echo "hello world" | nc -C localhost 8120`, and this would map to the `cmd_hello` function with `to_whom` populated by "world".
+A client call might take the form `echo "hello world" | nc -C localhost 8120`, and this would map to the `cmd_hello` function with `to_whom` populated by "world".
 
 ### Klein HTTP adapter
 
@@ -74,7 +53,7 @@ class ResourceFromIHello(KleinResourceMixin):
     return self.hello(request, None)
 ```
 
-A client API might take the form `curl -L -s http://localhost:8122/hello` or `curl -L -s http://localhost:8122/hello/world`.  The former redirects into `hello_unknown`; the latter, without redirection, into `hello`.
+A client call might take the form `curl -L -s http://localhost:8122/hello` or `curl -L -s http://localhost:8122/hello/world`.  The former redirects into `hello_unknown`; the latter, without redirection, into `hello`.
 
 ### register adapters
 
@@ -85,10 +64,33 @@ components.registerAdapter(NetcatFactoryFromIHello, IHello, IProtocolFactory)
 components.registerAdapter(ResourceFromIHello, IHello, IResource)
 ```
 
+### A Concrete Implementation
+
+To provide functionality, we need at least one concrete implementation of `IHello` from which to instantiate a component.  
+
+```python
+@implementer(IHello)
+class ConcreteHello(object):
+  def __init__(self, whoami):
+    self.whoami = whoami
+
+  def hello(self, to_whom) -> str:
+    if to_whom is None:
+      msg = f"Hello, I'm {self.whoami}.\n"
+
+    elif to_whom == self.whoami:
+      msg = "Thanks!\n"
+
+    else:
+      msg = f"I'm not {to_whom}.\n"
+
+    return msg
+```
+
 
 ### `main`
 
-A `main` code need only do a few things.  For example, the below code initializes twisted logging; creates an object that implements the IHello interfaces; starts a netcat endpoint; starts an HTTP endpoint; and runs the reactor:
+The `main` block need only do a few things.  For example, the below code initializes twisted logging; creates an `adaptable` component; starts netcat and HTTP endpoints.  Finally, it starts the reactor.
 
 ```python
 def main():
@@ -98,15 +100,15 @@ def main():
   ]
   globalLogBeginner.beginLoggingTo( observers )
 
-  # Create an object that implements the IHello interface
-  hello = ConcreteHello("world")
+  # Create an adaptable component
+  adaptable = ConcreteHello("world")
 
-  # a "netcat" endpoint
+  # set up a "netcat" endpoint
   endpoint = endpoints.serverFromString(reactor, "tcp:8120")
-  endpoint.listen( IProtocolFactory(hello) )
+  endpoint.listen( IProtocolFactory(adaptable) )
 
-  # an HTTP endpoint
-  site = server.Site( IResource(hello) )
+  # set up an HTTP endpoint
+  site = server.Site( IResource(adaptable) )
   endpoint = endpoints.serverFromString(reactor, "tcp:8122")
   endpoint.listen( site )
   
@@ -117,17 +119,7 @@ if __name__ == '__main__':
   main()
 ```
 
-From the components perspective, the interesting bit is the implicit casting:
-
-```python
-endpoint.listen( IProtocolFactory(hello) )
-```
-
-and 
-
-```python
-site = server.Site( IResource(hello) )
-```
+From the components perspective, the interesting bit is that calls to the `NetcatFactoryFromIHello` and `ResourceFromIHello` adapters are implicit.  In particular, the code that defines the adaptable component functionality is well-separated from the network code.
 
 See [src/tkap/resources/examples/hello_world.py](src/tkap/resources/examples/hello_world.py) for the full code.
 
