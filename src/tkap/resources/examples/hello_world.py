@@ -19,7 +19,7 @@ from twisted.web.resource import IResource
 
 from klein import Klein
 
-from tkap.klein_delegator import KleinDelegator
+from tkap.klein_resource_mixin import KleinResourceMixin
 from tkap.netcat_request import NetcatRequestFactory
 
 #
@@ -45,7 +45,7 @@ class NetcatFactoryFromIHello(NetcatRequestFactory):
 # Adapter for an HTTP endpoint
 #
 @implementer(IResource)
-class ResourceFromIHello(KleinDelegator):
+class ResourceFromIHello(KleinResourceMixin):
   app     = Klein()
   isLeaf  = True
 

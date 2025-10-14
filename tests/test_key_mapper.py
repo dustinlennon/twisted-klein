@@ -2,13 +2,13 @@ import pytest
 import pytest_twisted
 
 from tkap.errors import UnknownFsidError
-from tkap.mapper import KeyMapper
+from tkap.cloudconf.mapper import KeyMapper
 
 @pytest.fixture
 def mapper():
   def _mapper(fsmap, fsid):
     km = KeyMapper(fsmap)
-    return km.mapper(fsid)
+    return km.map(fsid)
   return _mapper
 
 @pytest_twisted.inlineCallbacks
