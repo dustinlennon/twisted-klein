@@ -27,25 +27,21 @@ from tkap.cloudconf.adapters import *
 from tkap.cloudconf.cloudconf_service import InstalledCloudconfService  
 from tkap.interfaces import *
 
-# logging
-# logger = Logger()
-# globalLogBeginner.beginLoggingTo([])
-# logger.info("Starting...")
-
 # read configuration
 config = {
   **dotenv_values(".env.tkap"),
   **os.environ
 }
 
-# create component
-with open( config["fsmap_yaml"] ) as f:
-  fsmap = yaml.safe_load(f)
+with open( config["yaml_path"] ) as f:
+  config_yaml = yaml.safe_load(f)
 
+# create component
 adaptable = (
-  InstalledCloudconfService(fsmap)
+  InstalledCloudconfService( config_yaml["fsmap"] )
     .setTemplateDirectory("/var/lib/tkap/resources/templates")
     .setTemplateName(None)
+    .setSshKeys( config_yaml["sshkeys"] )
 )
 
 # create application
@@ -70,11 +66,11 @@ strports.service(
 ).setServiceParent(serviceCollection)
 
 # HTTPS endpoint
-cert_pem_file     = config.get("cert_pem_file")
-private_key_file  = config.get("private_key_file")
+cert_pem_path     = config.get("cert_pem_path")
+private_key_path  = config.get("private_key_path")
 
-if cert_pem_file and private_key_file:
+if cert_pem_path and private_key_path:
   strports.service(
-    f"ssl:port=443:certKey={cert_pem_file}:privateKey={private_key_file}", site
+    f"ssl:port=443:certKey={cert_pem_path}:privateKey={private_key_path}", site
   ).setServiceParent(serviceCollection)
 

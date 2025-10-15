@@ -12,6 +12,7 @@ from tkap.cloudconf.mapper import (
 )
 from tkap.context_logger import ContextLogger
 from tkap.directory_hash import DirectoryHash
+from tkap.errors import SshKeyValueError
 from tkap.pipe_factory import PipeFactory
 from tkap.tarball_template import TarballTemplate
 
@@ -27,6 +28,7 @@ class CloudconfService(service.Service):
     super().__init__()
     self.template_directory = None
     self.template_name = None
+    self.sshkeys = dict()
 
   def setTemplateDirectory(self, path) -> "CloudconfService":
     self.template_directory = path
@@ -34,6 +36,10 @@ class CloudconfService(service.Service):
 
   def setTemplateName(self, name) -> "CloudconfService":
     self.template_name = name
+    return self
+
+  def setSshKeys(self, sshkeys) -> "CloudconfService":
+    self.sshkeys = sshkeys
     return self
 
   # -- IDirectoryHash ---------------------------------------------------------
@@ -60,6 +66,16 @@ class CloudconfService(service.Service):
 
   def getEnvPwd(self) -> defer.Deferred:
     return PipeFactory(["/usr/bin/pwd"]).run()
+  
+  # -- ISshKeys ---------------------------------------------------------------
+  def getSshKeys(self, userid) -> defer.Deferred:
+    keylist = self.sshkeys.get(userid, [])
+    sshkeys = "\n".join( keylist )
+
+    if len(sshkeys) > 0:
+      return defer.succeed( sshkeys )
+    else:
+      raise SshKeyValueError(f"'{userid}' unknown")
 
 
 #
