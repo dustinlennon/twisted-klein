@@ -1,6 +1,6 @@
 [project]
 name = "tkap"
-version = "0.1.9"
+version = "0.1.10"
 description = "twisted, klein, and pipes"
 authors = [
     {name = "Dustin Lennon",email = "dustin.lennon@gmail.com"}
@@ -28,5 +28,4 @@ include = [
 ]
 
 [project.scripts]
-installer = "tkap.installer:cli"
-test_server = "tkap.server:cli"
+installer = "tkap.cloudconf.installer:cli"

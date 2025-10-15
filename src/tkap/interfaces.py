@@ -28,3 +28,9 @@ class IEnvironment(Interface):
   def getEnvPwd(self) -> defer.Deferred:
     pass
 
+#
+# SshKeys
+#
+class ISshKeys(Interface):
+  def getSshKeys(self, userid) -> defer.Deferred:
+    pass
