@@ -6,3 +6,12 @@ class SshKeyValueError(Exception):
 
 class ProcessError(RuntimeError):
   pass
+
+class CloudconfServiceError(Exception):
+  pass
+
+class CloudConfigKeyError(CloudconfServiceError):
+  pass
+
+class SshKeyError(CloudconfServiceError):
+  pass

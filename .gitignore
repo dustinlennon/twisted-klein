@@ -4,6 +4,7 @@ twistd.pid
 dist/
 poetry.lock
 __pycache__
+certs
 
 # Temporarily...
 DEPLOY.md

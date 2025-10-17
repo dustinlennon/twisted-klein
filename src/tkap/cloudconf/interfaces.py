@@ -6,6 +6,6 @@ class ICloudconfService(
     IDirectoryHash,
     ITarballTemplate,
     IEnvironment,
-    ISshKeys
+    ICloudConf
   ):
   pass

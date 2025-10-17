@@ -26,8 +26,6 @@ class Installer(object):
     self._validate_user()
     self._add_user()
     self._install_dirs()
-    self._cp_resources()
-    self._chown_resources()
 
   def uninstall(self):
     self._validate_user()
@@ -51,17 +49,10 @@ class Installer(object):
     cmd = shlex.split("/usr/bin/install --owner=tkap --group=tkap -d /var/lib/tkap /run/tkap")
     subprocess.run(cmd, check = True)
 
-  def _cp_resources(self):
-    cmd = shlex.split(f"cp -R {self.path}/resources /var/lib/tkap")
-    subprocess.run(cmd, check = True)
-
   def _rm_resources(self):
     cmd = shlex.split("rm -rf /var/lib/tkap /run/tkap")
     subprocess.run(cmd, check = True)
 
-  def _chown_resources(self):
-    cmd = shlex.split("chown -R tkap:tkap /var/lib/tkap")
-    subprocess.run(cmd,check = True)
 
 #
 # cli

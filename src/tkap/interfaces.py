@@ -29,8 +29,20 @@ class IEnvironment(Interface):
     pass
 
 #
-# SshKeys
+# CloudConf
 #
-class ISshKeys(Interface):
+class ICloudConf(Interface):
+  def getMetaData(self, **kw) -> defer.Deferred:
+    pass  
+  
+  def getUserData(self, **kw) -> defer.Deferred:
+    pass  
+
+  def getVendorData(self, **kw) -> defer.Deferred:
+    pass  
+
   def getSshKeys(self, userid) -> defer.Deferred:
+    pass
+
+  def getReverseLookup(self, ipaddr) -> defer.Deferred:
     pass
