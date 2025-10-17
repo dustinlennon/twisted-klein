@@ -1,9 +1,19 @@
 #!/usr/bin/bash -e
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cd $(realpath "$SCRIPT_DIR/../../../..")
+if [ $# -ne 1 ]; then
+	echo "syntax error: ./cert.sh env.tkap"
+	exit 1
+elif [ -f "$1" ]; then
+	source $1
+else
+	echo "file not found: $1"
+	exit 1
+fi
 
-source .env.tkap
+if [ -z "$cert_output_path" ]; then
+	exit 0
+fi
+
 mkdir -p $cert_output_path
 
 rm -f $cert_output_path/site* \
