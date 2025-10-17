@@ -1,0 +1,17 @@
+#cloud-config
+
+autoinstall:
+  version: 1
+
+  #
+  # N.B., 'user-data' passes-through to cloud-init.  c.f., 'userdata_raw' in
+  # /target/etc/cloud/cloud.cfg.d/99-installer.cfg
+  #
+  user-data:
+    ca_certs:
+      trusted: 
+        - |
+          {{ site_cert_path | from_path | indent(width=10, first=False) }}
+
+  # {{ hostname | trim(chars = "\n.") }}
+

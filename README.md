@@ -148,22 +148,22 @@ uid=1000(dnlennon) gid=1000(dnlennon) groups=1000(dnlennon),...
 
 ### twistd
 
-For a more productionalized approach, there's a twistd variant that creates a "tkap" user/group; creates /run/tkap and /var/lib/tkap, owned by tkap; copies resources into /var/lib/tkap; and drops privileges to tkap after launching.
-
-This requires the prerequisite steps
-- to ensure that `pipenv` will be available systemwide; and,
-- to create the tkap user/group; the /run/tkap and /var/lib/tkap directories; and,
-- to copy the resources directory into /var/lib/tkap
+For a more productionalized approach, there's a twistd variant that drops privileges after launching.  In order to enjoy these features, there is an installer that creates a `tkap` user/group as well as the `/run/tkap` and `/var/lib/tkap` directories owned by `tkap`.
 
 ```bash
-sudo apt install pipenv
 sudo -E pipenv run installer --install
 ```
 
-Then, invoking twistd:
+To enable HTTPS connections, host certificates signed by a trusted site CA are be required.  The `cert.sh` script can be used to generate these; or, use ones of your choosing.  Configuration is via `.env.tkap`.
 
 ```bash
-sudo -E pipenv run twistd -ny /var/lib/tkap/resources/examples/tkap.tac
+$(pipenv run installer)/resources/scripts/cert.sh
+```
+
+Now, invoking twistd:
+
+```bash
+sudo -E pipenv run twistd -ny src/tkap/resources/examples/tkap.tac
 ```
 
 Now, the reported active user/group is `tkap:tkap`.
@@ -176,12 +176,12 @@ uid=137(tkap) gid=144(tkap) groups=144(tkap)
 
 ### systemd
 
-Finally, there's a systemd service.  For this to work, update `/var/lib/tkap/resources/fsmap.yaml` to reflect the paths to be mapped.
+Finally, there's a systemd service.  
 
 ```bash
 sudo -E pipenv run installer --install
-sudo systemctl enable /var/lib/tkap/resources/examples/tkap.service
-sudoedit /var/lib/tkap/resources/fsmap.yaml
+$(pipenv run installer)/resources/scripts/service-install.sh
+sudo systemctl enable $(pipenv run installer)/resources/examples/tkap.service
 sudo systemctl start tkap.service
 ```
 
@@ -195,3 +195,10 @@ $ echo "env_id" | nc -C localhost 8121
 uid=137(tkap) gid=144(tkap) groups=144(tkap)
 ```
 
+#### uninstall systemd
+
+```bash
+sudo systemctl stop tkap.service
+sudo systemctl disable tkap.service
+sudo -E pipenv run installer --uninstall
+```

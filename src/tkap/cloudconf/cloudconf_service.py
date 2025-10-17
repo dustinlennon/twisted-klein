@@ -1,10 +1,15 @@
+from pathlib import Path
 import shutil
+import uuid
 
 from zope.interface import implementer
 
 from twisted.internet import defer
 from twisted.application import service
 
+from jinja2 import Environment, FileSystemLoader, Template
+
+from tkap.cloudconf import filters
 from tkap.cloudconf.interfaces import ICloudconfService
 from tkap.cloudconf.mapper import (
   KeyMapper,
@@ -12,7 +17,7 @@ from tkap.cloudconf.mapper import (
 )
 from tkap.context_logger import ContextLogger
 from tkap.directory_hash import DirectoryHash
-from tkap.errors import SshKeyValueError
+from tkap.errors import CloudConfigKeyError, SshKeyError
 from tkap.pipe_factory import PipeFactory
 from tkap.tarball_template import TarballTemplate
 
@@ -23,24 +28,56 @@ from tkap.tarball_template import TarballTemplate
 @implementer(ICloudconfService)
 class CloudconfService(service.Service):
   logger = ContextLogger()
+  empty_template = Template("")
 
   def __init__(self):
     super().__init__()
-    self.template_directory = None
-    self.template_name = None
+    self.tarball_template_directory = None
+    self.tarball_template_name = None
+    
     self.sshkeys = dict()
+    
+    self.nocloud_template = dict()
+    self.nocloud_kwargs = dict()
 
-  def setTemplateDirectory(self, path) -> "CloudconfService":
+  def setTarballTemplateDirectory(self, path) -> "CloudconfService":
     self.template_directory = path
     return self
 
-  def setTemplateName(self, name) -> "CloudconfService":
+  def setTarballTemplateName(self, name) -> "CloudconfService":
     self.template_name = name
     return self
 
   def setSshKeys(self, sshkeys) -> "CloudconfService":
-    self.sshkeys = sshkeys
+    if sshkeys:
+      self.sshkeys = sshkeys
     return self
+
+  def setMetaDataTemplate(self, meta_data_path, **kwargs) -> "CloudconfService":
+    if meta_data_path:
+      self.nocloud_template['meta'] = self._get_template(meta_data_path)
+      self.nocloud_kwargs['meta'] = kwargs
+    return self
+
+  def setUserDataTemplate(self, user_data_path, **kwargs) -> "CloudconfService":
+    if user_data_path:
+      self.nocloud_template['user'] = self._get_template(user_data_path)
+      self.nocloud_kwargs['user'] = kwargs
+    return self
+  
+  def setVendorDataTemplate(self, vendor_data_path, **kwargs) -> "CloudconfService":
+    if vendor_data_path:
+      self.nocloud_template['vendor'] = self._get_template(vendor_data_path)
+      self.nocloud_kwargs['vendor'] = kwargs
+    return self  
+
+  def _get_template(self, path):
+      pth = Path(path).resolve()
+      env = Environment( loader = FileSystemLoader( pth.parent ) )
+      env.filters['from_path'] = filters.from_path
+      env.globals['instance_id'] = filters.instance_id
+      return env.get_template( pth.name )
+  
 
   # -- IDirectoryHash ---------------------------------------------------------
   def getDirectoryHashMd5(self, fsid) -> defer.Deferred:
@@ -51,12 +88,12 @@ class CloudconfService(service.Service):
 
   # -- ITarballTemplate -------------------------------------------------------
   def getTarballTemplate(self, fsid) -> defer.Deferred:
-    if self.template_name is None:
+    if self.tarball_template_name is None:
       d = TarballTemplate.from_raw("{{ b64encoded_tarball }}\n\n").generate(fsid)
-    elif self.template_directory is None:
-      d = TarballTemplate.from_package(self.template_name).generate(fsid)
+    elif self.tarball_template_directory is None:
+      d = TarballTemplate.from_package(self.tarball_template_name).generate(fsid)
     else:
-      d = TarballTemplate.from_filesystem(self.template_directory, self.template_name).generate(fsid)
+      d = TarballTemplate.from_filesystem(self.tarball_template_directory, self.tarball_template_name).generate(fsid)
 
     return d
 
@@ -67,7 +104,22 @@ class CloudconfService(service.Service):
   def getEnvPwd(self) -> defer.Deferred:
     return PipeFactory(["/usr/bin/pwd"]).run()
   
-  # -- ISshKeys ---------------------------------------------------------------
+  # -- ICloudConf -------------------------------------------------------------
+  def getMetaData(self, **kw) -> defer.Deferred:
+    return self._nocloud_template('meta', **kw)
+
+  def getUserData(self, **kw) -> defer.Deferred:
+    return self._nocloud_template('user', **kw)
+
+  def getVendorData(self, **kw) -> defer.Deferred:
+    return self._nocloud_template('vendor', **kw)
+
+  def _nocloud_template(self, key, **kw):
+    template  = self.nocloud_template.get(key, self.empty_template)
+    kw.update( self.nocloud_kwargs.get(key, dict()) )
+    content = template.render(**kw)
+    return defer.succeed(content)
+
   def getSshKeys(self, userid) -> defer.Deferred:
     keylist = self.sshkeys.get(userid, [])
     sshkeys = "\n".join( keylist )
@@ -75,7 +127,12 @@ class CloudconfService(service.Service):
     if len(sshkeys) > 0:
       return defer.succeed( sshkeys )
     else:
-      raise SshKeyValueError(f"'{userid}' unknown")
+      raise SshKeyError(f"'{userid}' unknown")
+
+  def getReverseLookup(self, ipaddr) -> defer.Deferred:
+    d = PipeFactory([ f"dig @192.168.1.1 +short -x {ipaddr}" ]).run()
+    d.addCallback(bytes.decode)
+    return d
 
 
 #

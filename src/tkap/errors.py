@@ -1,8 +1,14 @@
 class UnknownFsidError(FileNotFoundError):
   pass
 
-class SshKeyValueError(Exception):
+class ProcessError(RuntimeError):
   pass
 
-class ProcessError(RuntimeError):
+class CloudconfServiceError(Exception):
+  pass
+
+class CloudConfigKeyError(CloudconfServiceError):
+  pass
+
+class SshKeyError(CloudconfServiceError):
   pass

@@ -3,19 +3,15 @@ Description=Tkap Server
 
 [Service]
 
-Environment="HOME=/home/dnlennon"
-Environment="PIPENV_PIPFILE=/home/dnlennon/Workspace/Sandbox/twisted-klein/Pipfile"
-Environment="fsmap_yaml=/var/lib/tkap/resources/fsmap.yaml"
-Environment="cert_pem_file=/etc/ssl/newcerts/carolina.pem"
-Environment="private_key_file=/etc/ssl/private/carolina.key"
+WorkingDirectory=/var/lib/tkap/install
 
-ExecStart=pipenv run twistd \
+EnvironmentFile=/var/lib/tkap/install/install.env
+
+ExecStart=/var/lib/tkap/install/bin/twistd \
     --nodaemon \
     --pidfile= \
     --syslog \
-    --python=/var/lib/tkap/resources/examples/tkap.tac
-
-WorkingDirectory=/run/tkap
+    --python=tkap.tac
 
 Restart=always
 

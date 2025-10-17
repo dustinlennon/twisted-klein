@@ -36,7 +36,11 @@ def cli():
 
   # CloudconfService setup
   src_path = resources.files("tkap") / "resources" / "data" / "foo"
-  adaptable = ServiceT({ 'foo' : src_path })
+  adaptable = (
+    ServiceT({ 'foo' : src_path })
+      .setMetaDataTemplate( "src/tkap/resources/templates/meta-data.yaml.j2" )
+      .setUserDataTemplate( "src/tkap/resources/templates/user-data.yaml.j2", site_cert_path = "certs/site.crt" )
+  )
 
   # (componentized) endpoints
   endpoint = endpoints.serverFromString(reactor, "tcp:8121")
