@@ -11,7 +11,7 @@ ExecStart=/var/lib/tkap/install/bin/twistd \
     --nodaemon \
     --pidfile= \
     --syslog \
-    --python=tkap.tac
+    --python=server.tac
 
 Restart=always
 

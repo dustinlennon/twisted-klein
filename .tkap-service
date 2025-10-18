@@ -1,0 +1,16 @@
+config_path=config/service.yaml
+
+host_cert_path=certs/host.crt
+host_key_path=certs/host.key
+site_cert_path=certs/site.crt
+
+# Jinja templates
+meta_data_path=src/tkap/resources/templates/meta-data.yaml.j2
+user_data_path=src/tkap/resources/templates/user-data.yaml.j2
+
+tac_path=src/tkap/resources/examples/tkap.tac
+
+cert_output_path=certs
+pip_install_tkap="install --no-cache-dir /home/dnlennon/Workspace/Sandbox/twisted-klein"
+subject_alt_names="DNS:carolina.mrdl, IP:192.168.1.104"
+
