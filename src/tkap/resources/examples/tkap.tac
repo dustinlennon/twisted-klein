@@ -29,12 +29,12 @@ from tkap.interfaces import *
 
 # configuration
 config_env = {
-  **dotenv_values(".env.tkap"),
+  **dotenv_values(".tkap"),
   **os.environ
 }
 
 # structured data
-with open( config_env["yaml_path"] ) as f:
+with open( config_env["config_path"] ) as f:
   config_yaml = yaml.safe_load(f)
 
 # create component
@@ -42,7 +42,7 @@ adaptable = (
   InstalledCloudconfService( config_yaml.get("fsmap", dict()) )
     .setSshKeys( config_yaml.get("sshkeys") )
     .setMetaDataTemplate( config_env.get("meta_data_path") )
-    .setUserDataTemplate( config_env.get("user_data_path"), site_cert_path = config_env["site_cert_path"] )
+    .setUserDataTemplate( config_env.get("user_data_path"), site_cert_path = config_env.get("site_cert_path") )
 )
 
 # create application
@@ -67,11 +67,11 @@ strports.service(
 ).setServiceParent(serviceCollection)
 
 # HTTPS endpoint
-cert_pem_path     = config_env.get("cert_pem_path")
-private_key_path  = config_env.get("private_key_path")
+host_cert_path  = config_env.get("host_cert_path")
+host_key_path   = config_env.get("host_key_path")
 
-if cert_pem_path and private_key_path:
+if host_cert_path and host_key_path:
   strports.service(
-    f"ssl:port=443:certKey={cert_pem_path}:privateKey={private_key_path}", site
+    f"ssl:port=443:certKey={host_cert_path}:privateKey={host_key_path}", site
   ).setServiceParent(serviceCollection)
 

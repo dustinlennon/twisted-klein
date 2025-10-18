@@ -1,14 +1,15 @@
-#!/usr/bin/bash -e
+#!/usr/bin/bash
 
-if [ $# -ne 1 ]; then
-	echo "syntax error: ./cert.sh env.tkap"
-	exit 1
-elif [ -f "$1" ]; then
-	source $1
-else
-	echo "file not found: $1"
-	exit 1
-fi
+# -- init ---------------------------------------------------------------------
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SCRIPT_NAME="$( basename -- ${BASH_SOURCE[0]})"
+source $SCRIPT_DIR/init_script $SCRIPT_NAME "$@"
+
+resolve_path $tkap_base_path \
+	cert_output_path
+
+# -----------------------------------------------------------------------------
 
 if [ -z "$cert_output_path" ]; then
 	exit 0

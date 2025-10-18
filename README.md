@@ -180,8 +180,8 @@ Finally, there's a systemd service.
 
 ```bash
 sudo -E pipenv run installer --install
-$(pipenv run installer)/resources/scripts/service-install.sh
-sudo systemctl enable $(pipenv run installer)/resources/examples/tkap.service
+src/tkap/resources/scripts/service-install.sh .tkap-service
+sudo systemctl enable src/tkap/resources/examples/tkap.service
 sudo systemctl start tkap.service
 ```
 

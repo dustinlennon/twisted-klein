@@ -1,0 +1,6 @@
+fsmap:
+  foo: /var/lib/tkap/install/lib/python3.12/site-packages/tkap/resources/data/foo       
+
+sshkeys:
+  ubuntu:
+    - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICLqmmfByjFuStwUpyIc7dcn2nOV/q+LDTzAn/32zbc/ service@carolina"
